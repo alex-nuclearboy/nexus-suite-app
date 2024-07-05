@@ -1,0 +1,82 @@
+{% extends 'newsapp/base.html' %}
+
+{% block title %}Daily News Summary{% endblock %}
+
+{% block content %}
+<div class="content-container" style="display: flex; max-width: 1200px; margin: auto;">
+    <main style="flex: 3; padding-right: 20px;">
+        <form method="GET" action="{% url 'newsapp:index' %}">
+            <input type="hidden" name="city" value="{{ selected_city }}">
+            <label for="category">Select News Category:</label>
+            <select id="category" name="category">
+                {% for category in categories %}
+                    <option value="{{ category }}" {% if category == selected_category %}selected{% endif %}>{{ category|title }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="country">Select Country for News:</label>
+            <select id="country" name="country">
+                {% for code, name in countries.items %}
+                    <option value="{{ code }}" {% if code == selected_country %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Update News</button>
+        </form>
+
+        <h2>Today's News from {{ selected_country_name }}</h2>
+        <h3>Category: {{ selected_category|title }}</h3>
+        <ul>
+            {% for article in news_data %}
+                <li>
+                    <a href="{{ article.url }}">{{ article.title }}</a> 
+                    - {{ article.source.name }}
+                </li>
+            {% endfor %}
+        </ul>
+    </main>
+
+    <aside style="flex: 1; min-width: 200px; max-width: 300px;">
+        <form method="GET" action="{% url 'newsapp:index' %}">
+            <input type="hidden" name="category" value="{{ selected_category }}">
+            <input type="hidden" name="country" value="{{ selected_country }}">
+            {% if weather_error_message %}
+            <div class="alert-error">{{ weather_error_message }}</div>
+            {% endif %}
+            <label for="city">Enter City for Weather (in English):</label>
+            <input type="text" id="city" name="city" placeholder="Enter city name" value="{{ selected_city }}" required>
+
+            <button type="submit">Update Weather</button>
+        </form>
+
+        <h3>Weather in {{ selected_city }}</h3>
+        {% if weather_data %}
+            <p><strong>Temperature:</strong> {{ weather_data.current.temp_c }}°C</p>
+            <p><strong>Condition:</strong> {{ weather_data.current.condition.text }}</p>
+            <p><strong>Humidity:</strong> {{ weather_data.current.humidity }}%</p>
+            <p><strong>Wind:</strong> {{ weather_data.current.wind_kph }} kph</p>
+            <p><strong>Last Updated:</strong> {{ weather_data.current.last_updated }}</p>
+        {% else %}
+            <p>Unable to retrieve weather data.</p>
+        {% endif %}
+
+        <h3>Exchange Rates</h3>
+        <table>
+            <tr>
+                <th>Currency</th>
+                <th>Rate (NB)</th>
+                <th>Sale Rate (PrivatBank)</th>
+                <th>Purchase Rate (PrivatBank)</th>
+            </tr>
+            {% for rate in exchange_rates %}
+            <tr>
+                <td>{{ rate.currency }}</td>
+                <td>{{ rate.saleRateNB }}</td>
+                <td>{{ rate.saleRate|default_if_none:"-" }}</td>
+                <td>{{ rate.purchaseRate|default_if_none:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </aside>
+</div>
+{% endblock %}
