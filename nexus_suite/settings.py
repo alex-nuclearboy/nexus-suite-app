@@ -29,10 +29,11 @@ SECRET_KEY = (
 DEBUG = True
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = [
-    'localhost', '127.0.0.1', '[::1]',
-    'genetic-crista-team-8-bd94b0ba.koyeb.app'
-]
+DJANGO_ALLOWED_HOSTS = os.getenv(
+    "DJANGO_ALLOWED_HOSTS",
+    "localhost,127.0.0.1,[::1],hurt-phedra-nexus-suite-app-588ba144.koyeb.app"
+)
+ALLOWED_HOSTS = [host.strip() for host in DJANGO_ALLOWED_HOSTS.split(",")]
 
 
 # Application definition
