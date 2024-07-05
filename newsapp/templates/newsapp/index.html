@@ -51,11 +51,10 @@
 
         <h3>Weather in {{ selected_city }}</h3>
         {% if weather_data %}
-            <p><strong>Temperature:</strong> {{ weather_data.current.temp_c }}°C</p>
-            <p><strong>Condition:</strong> {{ weather_data.current.condition.text }}</p>
-            <p><strong>Humidity:</strong> {{ weather_data.current.humidity }}%</p>
-            <p><strong>Wind:</strong> {{ weather_data.current.wind_kph }} kph</p>
-            <p><strong>Last Updated:</strong> {{ weather_data.current.last_updated }}</p>
+            <p><strong>Temperature:</strong> {{ weather_data.main.temp }}°C</p>
+            <p><strong>Condition:</strong> {{ weather_data.weather.0.description }}</p>
+            <p><strong>Humidity:</strong> {{ weather_data.main.humidity }}%</p>
+            <p><strong>Wind:</strong> {{ weather_data.wind.speed }} kph</p>
         {% else %}
             <p>Unable to retrieve weather data.</p>
         {% endif %}

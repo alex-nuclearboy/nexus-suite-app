@@ -1,9 +1,10 @@
 from django.shortcuts import render
 import requests
 import datetime
+import os
 
-NEWS_API_KEY = 'd933290a98e644f499ad2bee87f7f81c'
-WEATHER_API_KEY = '7cfac1a5811143f492c163316241906'
+NEWS_API_KEY = os.getenv('NEWS_API_ORG_KEY')
+WEATHER_API_KEY = os.getenv('OPEN_WEATHER_API_KEY')
 
 CATEGORIES = [
     'general', 'business', 'entertainment',
@@ -73,8 +74,8 @@ def fetch_news(category, country):
 
 def fetch_weather(city):
     url = (
-        f'http://api.weatherapi.com/v1/current.json?key={WEATHER_API_KEY}'
-        f'&q={city}'
+        f'https://api.openweathermap.org/data/2.5/weather?q={city}'
+        f'&APPID={WEATHER_API_KEY}&units=metric'
     )
     response = requests.get(url)
     if response.status_code == 400:
