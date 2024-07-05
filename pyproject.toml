@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "nexus-suite-app"
+version = "0.1.0"
+description = "NexusSuite combines news updates, weather forecasts, contacts, notes, and file management into a single, seamless application."
+authors = ["Alex <alex.nuclearboy@gmail.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+django = "^5.0.6"
+gunicorn = "^22.0.0"
+whitenoise = "^6.7.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
