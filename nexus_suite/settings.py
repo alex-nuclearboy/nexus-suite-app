@@ -29,10 +29,14 @@ SECRET_KEY = (
 DEBUG = True
 
 # ALLOWED_HOSTS = []
+
+# Fetch DJANGO_ALLOWED_HOSTS from environment variables
 DJANGO_ALLOWED_HOSTS = os.getenv(
     "DJANGO_ALLOWED_HOSTS",
     "localhost,127.0.0.1,[::1],hurt-phedra-nexus-suite-app-588ba144.koyeb.app"
 )
+
+# Split DJANGO_ALLOWED_HOSTS into a list of allowed hosts
 ALLOWED_HOSTS = [host.strip() for host in DJANGO_ALLOWED_HOSTS.split(",")]
 
 
