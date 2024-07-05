@@ -8,17 +8,30 @@
     <link rel="stylesheet" href="{% static 'newsapp/style.css' %}">
     <link rel="icon" href="{% static 'newsapp/favicon.ico' %}">
 </head>
+
 <body>
-<main class="container">
-    <nav style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px; display: flex; justify-content: space-between;">
-        <ul>
-            <li><a href="/" role="button"> Dashboard </a></li>
-        </ul>
-        <ul>
-            {% block nav_buttons %}{% endblock %}
-        </ul>
-    </nav>
-    {% block content %} {% endblock %}
-</main>
+    <header class="header">
+        <div class="left">
+            <div class="buttons">
+                <a href="/" role="button" class="homepage-button">{{ translations.dashboard }}</a>
+                {% block nav_left_buttons %}{% endblock %}
+            </div>
+        </div>
+        <div class="right">
+            <div>
+                {% block nav_right_buttons %}
+                <div class="lang-buttons">
+                    <a href="?lang=en" role="button" class="outline">EN</a>
+                    <a href="?lang=uk" role="button" class="outline">UA</a>
+                </div>
+                {% endblock %}
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        {% block content %} {% endblock %}
+    </main>
+
 </body>
 </html>
