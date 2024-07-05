@@ -29,19 +29,10 @@ SECRET_KEY = (
 DEBUG = True
 
 # ALLOWED_HOSTS = []
-# Get the DJANGO_ALLOWED_HOSTS environment variable, defaulting to
-# "localhost,127.0.0.1,[::1]" if not explicitly set in the environment.
-allowed_hosts = os.getenv(
-    "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1]"
-).split(",")
-
-# Add 'genetic-crista-team-8-bd94b0ba.koyeb.app' to the list
-# if it's not already present
-if 'genetic-crista-team-8-bd94b0ba.koyeb.app' not in allowed_hosts:
-    allowed_hosts.append('genetic-crista-team-8-bd94b0ba.koyeb.app')
-
-# Set ALLOWED_HOSTS
-ALLOWED_HOSTS = allowed_hosts
+ALLOWED_HOSTS = [
+    'localhost', '127.0.0.1', '[::1]',
+    'genetic-crista-team-8-bd94b0ba.koyeb.app'
+]
 
 
 # Application definition
