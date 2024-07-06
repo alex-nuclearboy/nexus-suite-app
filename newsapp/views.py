@@ -1,9 +1,11 @@
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render
+from django.utils import timezone
+from django.http import JsonResponse
 
+from datetime import datetime
 import urllib.parse
 import requests
-from datetime import datetime
 import pytz
 import os
 
@@ -64,38 +66,61 @@ def get_language(request):
     return language
 
 
-def get_timezone(request):
+def set_timezone(request):
     """
-    Get the timezone from the request or session.
-    - Retrieves the timezone from the GET parameters or session.
-    - Defaults to 'UTC' if no timezone is found.
-    - Stores the timezone in the session.
+    Set the timezone based on the user's request.
+    - Retrieves the 'timezone' parameter from the GET request.
+    - Activates the timezone if it is valid.
+    - Stores the timezone in the user's session.
+    - Handles invalid timezone errors gracefully.
+
+    Parameters:
+    request (HttpRequest): The request containing the 'timezone' parameter
+                           in the GET query string.
+
+    Returns:
+    JsonResponse: A response with a JSON object containing the status
+                  of the operation.
     """
-    timezone = request.GET.get('timezone')
-    if not timezone:
-        timezone = request.session.get('timezone', 'UTC')
-    request.session['timezone'] = timezone
-    return timezone
+    timezone_str = request.GET.get('timezone')
+    if timezone_str:
+        try:
+            timezone.activate(pytz.timezone(timezone_str))
+            request.session['django_timezone'] = timezone_str
+        except pytz.UnknownTimeZoneError:
+            pass
+    return JsonResponse({'status': 'success'})
 
 
 def main(request):
     """
-    Main view function to display the weather and exchange rates.
+    Main view function to display the weather, exchange rates, and news.
+    - Displays current date and time in the user's timezone.
     - Retrieves the language from the session.
     - Loads the translations based on the language.
+    - Retrieves and paginates news data based on country.
     - Fetches the weather and exchange rates data.
     - Handles errors and displays appropriate messages.
+
+    Parameters:
+    request (HttpRequest): The request object containing GET parameters
+                           for 'country', and 'page'.
+
+    Returns:
+    HttpResponse: The rendered template with the context data.
     """
     language = get_language(request)
     trans = translations.get(language, translations['en'])
 
-    timezone_str = get_timezone(request)
-    timezone = pytz.timezone(timezone_str)
-    now = datetime.now(timezone)
+    timezone_str = request.session.get('django_timezone', 'UTC')
+    user_timezone = pytz.timezone(timezone_str)
+    now = timezone.now().astimezone(user_timezone)
 
     translated_day, translated_month = get_translated_day_and_month(now)
     current_time = now.strftime('%H:%M')
-    current_date = f"{translated_day}, {translated_month} {now.day}, {now.year}"
+    current_date = (
+        f"{translated_day}, {translated_month} {now.day}, {now.year}"
+    )
 
     error_message = None
     weather_error_message = None
@@ -129,7 +154,7 @@ def main(request):
 
     news_data = fetch_news(category, country, trans)
 
-    # Пагінація новин
+    # Pagination of news
     page = request.GET.get('page', 1)
     paginator = Paginator(news_data, 10)
     try:

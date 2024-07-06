@@ -12,6 +12,13 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'newsapp/style.css' %}">
     <link rel="icon" href="{% static 'newsapp/favicon.ico' %}">
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            fetch(`/set_timezone/?timezone=${timezone}`, { method: 'GET' });
+        });
+    </script>
 </head>
 <body>
     <header class="header">
