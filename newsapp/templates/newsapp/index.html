@@ -26,39 +26,28 @@
             <div class="date-time">
                 <span>{{ current_time }} - {{ current_date }}</span>
             </div>
-            <a href="?lang=uk" class="language">{{ translations.language }}</a>
+            <a href="?lang={% if request.session.language == 'en' %}uk{% else %}en{% endif %}" class="language">
+                {% if request.session.language == 'en' %}
+                    Українською
+                {% else %}
+                    English
+                {% endif %}
+            </a>
         </div>
         <nav class="nav-bar">
-            <span class="brand">NexusSuite</span>
+            <a class="brand" href="{% url 'newsapp:index' %}">
+                <span class="accent">Nexus</span>Suite
+            </a>
+
             <div class="auth-links">
- 
+                <a href="{% url 'newsapp:index' %}">{{ translations.sign_up }}</a>
+                <a href="{% url 'newsapp:index' %}">{{ translations.login }}</a>
             </div>
         </nav>
     </header>
     <div class="content-container">
         <main>
-            <h1>{{ translations.todays_news_from }} {{ selected_country_name }}</h1>
-            <div class="news-form-container">
-                <form method="GET" action="{% url 'newsapp:index' %}" class="news-form">
-                    <div class="form-group">
-                        <label for="category">{{ translations.select_news_category }}</label>
-                        <select id="category" name="category">
-                            {% for category in categories %}
-                                <option value="{{ category }}" {% if category == selected_category %}selected{% endif %}>{{ category|title }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="country">{{ translations.select_news_country }}</label>
-                        <select id="country" name="country">
-                            {% for code, name in countries.items %}
-                                <option value="{{ code }}" {% if code == selected_country %}selected{% endif %}>{{ name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="submit-button">{{ translations.update_news }}</button>
-                </form>
-            </div>
+            <h1>{{ translations.todays_news_from }} {{ genitive_country_name }}</h1>
             <section class="news-section">
                 <h2>{{ translations.general }}</h2>
                 <ul class="news-list">
@@ -85,36 +74,58 @@
             </section>
         </main>
         <aside>
-            <div class="weather-container">
-                <form method="GET" action="{% url 'newsapp:index' %}">
-                    <input type="hidden" name="category" value="{{ selected_category }}">
-                    <input type="hidden" name="country" value="{{ selected_country }}">
-                    {% if weather_error_message %}
-                    <div class="alert-error">{{ weather_error_message }}</div>
-                    {% endif %}
-                    <div>
-                        <input type="text" id="city" name="city" placeholder="{{ translations.select_city }}" value="{{ selected_city }}" required>
-                        <button type="submit" class="submit-button">{{ translations.update_weather }}</button>
+            <div class="news-form-container">
+                <label for="country">{{ translations.select_news_country }}</label>
+                <form method="GET" action="{% url 'newsapp:index' %}" class="news-form">
+                    <input type="hidden" name="city" value="{{ selected_city }}">
+                    <div class="form-group">
+                        <select id="country" name="country">
+                            {% for code, name in countries.items %}
+                                <option value="{{ code }}" {% if code == selected_country %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
+                    <button type="submit" class="submit-button">{{ translations.update_news }}</button>
                 </form>
-                <div class="weather-details">
-                    <h3>{{ selected_city }}</h3>
-                    {% if weather_data %}
-                        <p>{{ translations.temperature }}: {{ weather_data.main.temp }}°C</p>
-                        <p>{{ translations.condition }}: {{ weather_data.weather.0.description }}</p>
-                        <p>{{ translations.humidity }}: {{ weather_data.main.humidity }}%</p>
-                        <p>{{ translations.wind }}: {{ weather_data.wind.speed }} {{ translations.kph }}</p>
-                    {% else %}
-                        <p>{{ translations.unable_to_retrieve_weather }}</p>
-                    {% endif %}
+            </div>
+            <div class="weather-container">
+                <div class="weather-header">
+                    <span class="city_name">{{ selected_city }}</span>
+                    <h3>{{ translations.weather }}</h3>
+                </div>
+                
+                {% if weather_error_message %}
+                    <div class="alert-error">{{ weather_error_message }}</div>
+                {% else %}
+                    <div class="weather-details">
+                        <div class="temperature">{{ weather_data.main.temp }}°C</div>
+                        <div class="other-details">
+                            <p><span>{{ translations.condition }}</span>: <strong>{{ weather_data.weather.0.description }}</strong></p>
+                            <p><span>{{ translations.humidity }}</span>: <strong>{{ weather_data.main.humidity }}%</strong></p>
+                            <p><span>{{ translations.wind }}</span>: <strong>{{ weather_data.wind.speed }} {{ translations.kph }}</strong></p>
+                        </div>
+                    </div>
+                {% endif %}
+            
+                <div class="weather-form-container">
+                    <label for="city">{{ translations.enter_city_for_weather }}</label>
+                    <form method="GET" action="{% url 'newsapp:index' %}" class="weather-form">
+                        <input type="hidden" name="country" value="{{ selected_country }}">
+                        <div class="form-group">
+                            <input type="text" id="city" name="city" placeholder="{{ translations.enter_city_name }}" value="{{ selected_city }}" required>
+                        </div>
+                        <button type="submit" class="submit-button">{{ translations.update_weather }}</button>
+                    </form>
                 </div>
             </div>
             <div class="exchange-rates">
-                <h3>{{ translations.exchange_rates }}</h3>
-                <table>
+                <div class="exchange-rates-header">
+                    <h3>{{ translations.exchange_rates }}</h3>
+                </div>
+                <table class="exchange-rates-table">
                     <thead>
                         <tr>
-                            <th>{{ translations.currency }}</th>
+                            <th></th>
                             <th>{{ translations.rate_nb }}</th>
                             <th>{{ translations.sale_rate }}</th>
                             <th>{{ translations.purchase_rate }}</th>
@@ -122,16 +133,17 @@
                     </thead>
                     <tbody>
                         {% for rate in exchange_rates %}
-                            <tr>
+                            <tr class="{% cycle 'odd' 'even' %}">
                                 <td>{{ rate.currency }}</td>
-                                <td>{{ rate.saleRateNB }}</td>
-                                <td>{{ rate.saleRate|default_if_none:"-" }}</td>
-                                <td>{{ rate.purchaseRate|default_if_none:"-" }}</td>
+                                <td class="rate-value">{{ rate.saleRateNB }}</td>
+                                <td class="rate-value">{{ rate.saleRate|default_if_none:"-" }}</td>
+                                <td class="rate-value">{{ rate.purchaseRate|default_if_none:"-" }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+            
         </aside>
     </div>
 </body>

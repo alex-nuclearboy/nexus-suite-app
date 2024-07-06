@@ -50,6 +50,14 @@ COUNTRIES_UA = {
     'de': 'Німеччина',
     'pl': 'Польща'
 }
+COUNTRIES_GENITIVE_UA = {
+    'ua': 'України',
+    'us': 'США',
+    'gb': 'Великої Британії',
+    'fr': 'Франції',
+    'de': 'Німеччини',
+    'pl': 'Польщі'
+}
 
 
 def get_language(request):
@@ -116,10 +124,12 @@ def main(request):
     user_timezone = pytz.timezone(timezone_str)
     now = timezone.now().astimezone(user_timezone)
 
-    translated_day, translated_month = get_translated_day_and_month(now)
+    translated_day, translated_month = (
+        get_translated_day_and_month(now, language)
+    )
     current_time = now.strftime('%H:%M')
     current_date = (
-        f"{translated_day}, {translated_month} {now.day}, {now.year}"
+        f"{translated_day}, {now.day} {translated_month} {now.year}"
     )
 
     error_message = None
@@ -136,6 +146,11 @@ def main(request):
     )
     displayed_country_name = (
         COUNTRIES_UA.get(country, 'Unknown') if language == 'uk'
+        else COUNTRIES.get(country, 'Unknown')
+    )
+
+    genitive_country_name = (
+        COUNTRIES_GENITIVE_UA.get(country, 'Unknown') if language == 'uk'
         else COUNTRIES.get(country, 'Unknown')
     )
 
@@ -177,6 +192,7 @@ def main(request):
         'selected_city': city,
         'selected_country': country,
         'selected_country_name': displayed_country_name,
+        'genitive_country_name': genitive_country_name,
         'error_message': error_message,
         'weather_error_message': weather_error_message
     }

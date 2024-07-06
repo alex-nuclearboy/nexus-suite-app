@@ -1,21 +1,36 @@
+.error, .alert-error, .errorlist {
+    color: crimson;
+}
+
+.alert-success {
+    color: green;
+}
+
 :root {
     --color-primary: #212121;
     --color-secondary: #757575;
-    --color-brand: #2196f3;
-    --color-brand-dk: #188ce8;
+    --color-brand: #0466C8;
+    --color-brand-dk: #023E7D;
     --color-light: #fff;
     --color-bg-dark: #2f303a;
     --color-bg-light: #f5f4fa;
     --color-logo: #212121;
+    --color-bg-blue: #001F54;
+    --element-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
 body {
     background-color: var(--color-light);
-    color: var(--color-primary);;
+    color: var(--color-primary);
     font-family: "Roboto", sans-serif;
-    font-size: 20px;
+    font-size: 16px;
     letter-spacing: 0.42px;
     font-weight: 400;
+}
+
+h1 {
+    font-size: 24px;
+
 }
 
 .header {
@@ -26,37 +41,59 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #001F54;
+    background-color: var(--color-bg-blue);
     padding: 10px 60px;
-    color: var(--color-light);
 }
 
-.top-bar .datetime,
+.top-bar .date-time,
 .top-bar .language {
-    font-size: 16px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-light);
+    text-decoration: none;
+}
+.top-bar .language:hover {
+    color: var(--color-brand);
     font-weight: 600;
+    text-decoration: underline;
 }
 
 .nav-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #F8F7FF;
+    background-color: var(--color-bg-light);
     padding: 20px 60px;
+    box-shadow: var(--element-shadow);
 }
 
 .nav-bar .brand {
     font-family: 'Raleway', sans-serif;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 600;
-    color: #00A6FB;
+    color: var(--color-logo);
+    text-decoration: none;
+}
+
+.nav-bar .brand:hover {
+    color: var(--color-brand);
+}
+
+.nav-bar .brand .accent {
+    color: var(--color-brand);
 }
 
 .nav-bar .auth-links a {
     margin-left: 20px;
     font-size: 20px;
+    font-weight: 400;
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.nav-bar .auth-links a:hover {
     font-weight: 600;
-    color: #00A6FB;
+    color: var(--color-brand);
 }
 
 .content-container {
@@ -83,22 +120,24 @@ aside {
     border: 1px solid #dee2e6;
     border-radius: 8px;
     margin-bottom: 40px;
+    box-shadow: var(--element-shadow)
+}
+
+.news-form-container label {
+    display: block;
+    margin-bottom: 0;
+    font-size: 20px;
+    font-weight: 600;
 }
 
 .news-form {
     display: flex;
     gap: 20px;
+    align-items: center;
 }
 
 .news-form .form-group {
     flex: 1;
-}
-
-.news-form .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 16px;
-    font-weight: bold;
 }
 
 .news-form .form-group select,
@@ -109,17 +148,31 @@ aside {
     border-radius: 4px;
     background-color: #ffffff;
     color: #212529;
+    font-size: 14px;
+    height: 40px;
 }
 
 .news-form .submit-button {
-    width: 150px;
-    padding: 10px 20px;
-    background-color: #00A6FB;
-    color: white;
+    width: auto;
+    height: 40px;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 4px 20px;
+    background-color: var(--color-brand);
+    color: var(--color-light);
+    font-weight: 600;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0;
+    box-shadow: var(--element-shadow);
+}
+
+.news-form .submit-button:hover {
+    background-color: var(--color-brand-dk);
 }
 
 .news-section {
@@ -161,48 +214,176 @@ aside {
     margin-top: 20px;
 }
 
-.weather-container,
+.weather-container {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 40px;
+    box-shadow: var(--element-shadow);
+}
+
+.weather-container .weather-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.weather-container .city_name {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin: 0;
+}
+
+.weather-container h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-brand);
+    margin: 0;
+}
+
+.weather-container h3:hover {
+    color: var(--color-brand-dk);
+}
+
+.weather-details {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.weather-details .temperature {
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-right: 32px;
+}
+
+.weather-details .other-details {
+    font-size: 14px;
+    color: var(--color-text);
+}
+
+.weather-details .other-details p {
+    margin: 5px 0;
+}
+
+.weather-details .other-details p strong {
+    color: var(--color-text-gray);
+    font-weight: 600;
+}
+
+.weather-details .other-details p span {
+    color: var(--color-primary);
+    font-weight: 400;
+}
+
+.weather-form {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.weather-form .form-group {
+    flex: 1;
+}
+
+.weather-form .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.weather-form .form-group input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #ffffff;
+    color: #212529;
+    font-size: 14px;
+    height: 24px;
+}
+
+.weather-form .submit-button {
+    width: auto;
+    height: 40px;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 4px 20px;
+    background-color: var(--color-brand);
+    color: var(--color-light);
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--element-shadow);
+    margin-left: 20px;
+}
+
+.weather-form .submit-button:hover {
+    background-color: var(--color-brand-dk);
+}
+
 .exchange-rates {
     background-color: #f8f9fa;
     padding: 20px;
     border: 1px solid #dee2e6;
     border-radius: 8px;
     margin-bottom: 40px;
+    box-shadow: var(--element-shadow);
 }
 
-.weather-container h3,
-.exchange-rates h3 {
-    font-size: 24px;
-    font-weight: 600;
-    color: #00A6FB;
-}
-
-.weather-details p {
-    margin: 10px 0;
+.exchange-rates-header h3 {
     font-size: 20px;
+    font-weight: 600;
+    color: var(--color-brand);
+    text-align: right;
 }
 
-.exchange-rates table {
+.exchange-rates-header h3:hover {
+    color: var(--color-brand-dk);
+}
+
+.exchange-rates-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
 }
 
-.exchange-rates th,
-.exchange-rates td {
-    padding: 10px;
-    text-align: left;
-    border: 1px solid #dee2e6;
+.exchange-rates-table th,
+.exchange-rates-table td {
+    padding: 8px;
+    text-align: center;
+    border: none;
 }
 
-.exchange-rates th {
-    background-color: #f8f9fa;
-    color: #212529;
+.exchange-rates-table th {
+    font-weight: 400;
+    color: #757575;
 }
 
-.exchange-rates td {
+.exchange-rates-table td {
+    font-weight: 400;
+    color: #757575;
+}
+
+.exchange-rates-table .rate-value {
+    font-weight: 600;
+    color: #212121;
+}
+
+.exchange-rates-table tr.odd {
     background-color: #ffffff;
-    color: #212529;
+}
+
+.exchange-rates-table tr.even {
+    background-color: #f1f1f1;
 }
 
 /* Dark Mode Styles */
