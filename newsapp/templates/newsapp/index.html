@@ -2,35 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <title>{{ translations.title }}</title>
-    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"/>
+    <title>{% block title %}NexusSuite{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Roboto:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
     {% load static %}
     <link rel="stylesheet" href="{% static 'newsapp/style.css' %}">
     <link rel="icon" href="{% static 'newsapp/favicon.ico' %}">
 </head>
-
 <body>
     <header class="header">
-        <div class="left">
-            <div class="buttons">
-                <a href="/" role="button" class="homepage-button">{{ translations.dashboard }}</a>
+        <div class="top-bar">
+            <div class="date-time">
+                <span>{{ current_time }} - {{ current_date }}</span>
             </div>
+            <a href="?lang=uk" class="language">{{ translations.language }}</a>
         </div>
-        <div class="right">
-            <div class="buttons">
-                {% block nav_right_buttons %}
-                <div class="lang-buttons">
-                    <a href="?lang=en" role="button" class="outline">EN</a>
-                    <a href="?lang=uk" role="button" class="outline">UA</a>
-                </div>
-                {% endblock %}
+        <nav class="nav-bar">
+            <span class="brand">NexusSuite</span>
+            <div class="auth-links">
+ 
             </div>
-        </div>
+        </nav>
     </header>
-
-    <div class="content-container" style="display: flex; margin: auto;">
-        <main style="flex: 2; padding-right: 20px;">
-            <div class="form-container">
+    <div class="content-container">
+        <main>
+            <h1>{{ translations.todays_news_from }} {{ selected_country_name }}</h1>
+            <div class="news-form-container">
                 <form method="GET" action="{% url 'newsapp:index' %}" class="news-form">
                     <div class="form-group">
                         <label for="category">{{ translations.select_news_category }}</label>
@@ -51,72 +52,79 @@
                     <button type="submit" class="submit-button">{{ translations.update_news }}</button>
                 </form>
             </div>
-
-            <h2>{{ translations.todays_news_from }} {{ selected_country_name }}</h2>
-            <h3>{{ translations.category }}: {{ selected_category|title }}</h3>
-            <ul class="news-list">
-                {% for article in news_data %}
-                    <li>
-                        <a href="{{ article.url }}">{{ article.title }}</a>
-                        - {{ article.source.name }}
-                    </li>
-                {% endfor %}
-            </ul>
-
-            <!-- Pagination -->
-            <div class="pagination">
-                {% if news_data.has_previous %}
-                    <a href="?page=1&city={{ selected_city }}&category={{ selected_category }}&country={{ selected_country }}" class="nav-button">{{ translations.first }}</a>
-                    <a href="?page={{ news_data.previous_page_number }}&city={{ selected_city }}&category={{ selected_category }}&country={{ selected_country }}" class="nav-button">{{ translations.previous }}</a>
-                {% endif %}
-                <span>{{ translations.page }} {{ news_data.number }} {{ translations.of }} {{ news_data.paginator.num_pages }}</span>
-                {% if news_data.has_next %}
-                    <a href="?page={{ news_data.next_page_number }}&city={{ selected_city }}&category={{ selected_category }}&country={{ selected_country }}" class="nav-button">{{ translations.next }}</a>
-                    <a href="?page={{ news_data.paginator.num_pages }}&city={{ selected_city }}&category={{ selected_category }}&country={{ selected_country }}" class="nav-button">{{ translations.last }}</a>
-                {% endif %}
-            </div>
+            <section class="news-section">
+                <h2>{{ translations.general }}</h2>
+                <ul class="news-list">
+                    {% for article in news_data %}
+                        <li>
+                            <a href="{{ article.url }}">{{ article.title }}</a> 
+                            - {{ article.source.name }}
+                        </li>
+                    {% endfor %}
+                </ul>
+                <a href="#" class="view-more">{{ translations.all_news_from_general }}</a>
+            </section>
+            <section class="news-section">
+                <h2>{{ translations.politics }}</h2>
+                <ul class="news-list">
+                    {% for article in news_data %}
+                        <li>
+                            <a href="{{ article.url }}">{{ article.title }}</a> 
+                            - {{ article.source.name }}
+                        </li>
+                    {% endfor %}
+                </ul>
+                <a href="#" class="view-more">{{ translations.all_news_from_politics }}</a>
+            </section>
         </main>
-
-        <aside style="flex: 1; min-width: 200px; max-width: 450px;">
-            <form method="GET" action="{% url 'newsapp:index' %}">
-                <input type="hidden" name="category" value="{{ selected_category }}">
-                <input type="hidden" name="country" value="{{ selected_country }}">
-                {% if weather_error_message %}
-                <div class="alert-error">{{ weather_error_message }}</div>
-                {% endif %}
-                <div style="width: 280px;">
-                    <input type="text" id="city" name="city" placeholder="{{ translations.enter_city }}" value="{{ selected_city }}" required>
-                    <button type="submit" class="submit-button">{{ translations.update_weather }}</button>
+        <aside>
+            <div class="weather-container">
+                <form method="GET" action="{% url 'newsapp:index' %}">
+                    <input type="hidden" name="category" value="{{ selected_category }}">
+                    <input type="hidden" name="country" value="{{ selected_country }}">
+                    {% if weather_error_message %}
+                    <div class="alert-error">{{ weather_error_message }}</div>
+                    {% endif %}
+                    <div>
+                        <input type="text" id="city" name="city" placeholder="{{ translations.select_city }}" value="{{ selected_city }}" required>
+                        <button type="submit" class="submit-button">{{ translations.update_weather }}</button>
+                    </div>
+                </form>
+                <div class="weather-details">
+                    <h3>{{ selected_city }}</h3>
+                    {% if weather_data %}
+                        <p>{{ translations.temperature }}: {{ weather_data.main.temp }}°C</p>
+                        <p>{{ translations.condition }}: {{ weather_data.weather.0.description }}</p>
+                        <p>{{ translations.humidity }}: {{ weather_data.main.humidity }}%</p>
+                        <p>{{ translations.wind }}: {{ weather_data.wind.speed }} {{ translations.kph }}</p>
+                    {% else %}
+                        <p>{{ translations.unable_to_retrieve_weather }}</p>
+                    {% endif %}
                 </div>
-            </form>
-
-            <h3>{{ translations.weather_in }} {{ selected_city }}</h3>
-            {% if weather_data %}
-                <p><strong>{{ translations.temperature }}</strong> {{ weather_data.main.temp }}°C</p>
-                <p><strong>{{ translations.condition }}</strong> {{ weather_data.weather.0.description }}</p>
-                <p><strong>{{ translations.humidity }}</strong> {{ weather_data.main.humidity }}%</p>
-                <p><strong>{{ translations.wind }}</strong> {{ weather_data.wind.speed }} {{ translations.kph }}</p>
-            {% else %}
-                <p>{{ translations.unable_to_retrieve_weather }}</p>
-            {% endif %}
-
-            <h3>{{ translations.exchange_rates }}</h3>
-            <table>
-                <tr>
-                    <th>{{ translations.currency }}</th>
-                    <th>{{ translations.rate_nb }}</th>
-                    <th>{{ translations.sale_rate }}</th>
-                    <th>{{ translations.purchase_rate }}</th>
-                </tr>
-                {% for rate in exchange_rates %}
-                <tr>
-                    <td>{{ rate.currency }}</td>
-                    <td>{{ rate.saleRateNB }}</td>
-                    <td>{{ rate.saleRate|default_if_none:"-" }}</td>
-                    <td>{{ rate.purchaseRate|default_if_none:"-" }}</td>
-                </tr>
-                {% endfor %}
-            </table>
+            </div>
+            <div class="exchange-rates">
+                <h3>{{ translations.exchange_rates }}</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>{{ translations.currency }}</th>
+                            <th>{{ translations.rate_nb }}</th>
+                            <th>{{ translations.sale_rate }}</th>
+                            <th>{{ translations.purchase_rate }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rate in exchange_rates %}
+                            <tr>
+                                <td>{{ rate.currency }}</td>
+                                <td>{{ rate.saleRateNB }}</td>
+                                <td>{{ rate.saleRate|default_if_none:"-" }}</td>
+                                <td>{{ rate.purchaseRate|default_if_none:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </aside>
     </div>
 </body>

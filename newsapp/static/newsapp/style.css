@@ -1,138 +1,137 @@
-.error, .alert-error, .errorlist {
-    color: crimson;
-}
-
-.alert-success {
-    color: green;
-}
+:root {
+    --color-primary: #212121;
+    --color-secondary: #757575;
+    --color-brand: #2196f3;
+    --color-brand-dk: #188ce8;
+    --color-light: #fff;
+    --color-bg-dark: #2f303a;
+    --color-bg-light: #f5f4fa;
+    --color-logo: #212121;
+  }
 
 body {
-    background-color: #ffffff;
-    color: #212529;
+    background-color: var(--color-light);
+    color: var(--color-primary);;
+    font-family: "Roboto", sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.42px;
+    font-weight: 400;
 }
 
 .header {
+    width: 100%;
+}
+
+.top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #dee2e6;
-    padding: 20px 0;
-    margin: 0 20px;
+    background-color: #001F54;
+    padding: 10px 60px;
+    color: var(--color-light);
 }
 
-.header .left {
+.top-bar .datetime,
+.top-bar .language {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.nav-bar {
     display: flex;
+    justify-content: space-between;
     align-items: center;
+    background-color: #F8F7FF;
+    padding: 20px 60px;
 }
 
-.header .left .buttons a {
-    margin-left: 10px;
-    padding: 8px 12px;
+.nav-bar .brand {
+    font-family: 'Raleway', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: #00A6FB;
+}
+
+.nav-bar .auth-links a {
+    margin-left: 20px;
     font-size: 20px;
-    color: #ffffff;
+    font-weight: 600;
+    color: #00A6FB;
 }
 
-.header .left .buttons .homepage-button {
-    background-color: #9b2226;
-    border: none;
-}
-
-.header .left .buttons .homepage-button:hover {
-    background-color: #6d2023;
-}
-
-.header .right {
+.content-container {
     display: flex;
-    align-items: center;
+    max-width: 1200px;
+    margin: 40px auto;
+    gap: 20px;
 }
 
-.header .right .buttons {
-    display: flex;
-    align-items: center;
+main {
+    flex: 2;
 }
 
-.header .right .buttons a {
-    margin-left: 10px;
-    padding: 8px 12px;
-    font-size: 20px;
-}
-
-.lang-buttons {
-    display: flex;
-    gap: 10px;
-    margin: 0 20px;
-}
-
-.lang-buttons a {
-    margin-left: 0;
-    padding: 8px 12px;
-    font-size: 20px;
-    border-radius: 5px;
-    text-decoration: none;
-}
-
-.form-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    border: 1px solid #dee2e6;
-    border-radius: 5px;
-    background-color: #f8f9fa;
-    margin-bottom: 20px;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    margin-right: 12px;
+aside {
     flex: 1;
 }
 
-.form-group label {
+.news-form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 40px;
+}
+
+.news-form {
+    display: flex;
+    gap: 20px;
+}
+
+.news-form .form-group {
+    flex: 1;
+}
+
+.news-form .form-group label {
+    display: block;
     margin-bottom: 5px;
+    font-size: 16px;
     font-weight: bold;
-    color: #212529;
 }
 
-.form-group select {
+.news-form .form-group select,
+.news-form .form-group input[type="text"] {
+    width: 100%;
     padding: 8px;
     border: 1px solid #ced4da;
     border-radius: 4px;
-    width: 280px;
     background-color: #ffffff;
     color: #212529;
-    box-sizing: border-box;
 }
 
-.form-group input[type="text"] {
-    padding: 8px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    width: 250px;
-    background-color: #ffffff;
-    color: #212529;
-    box-sizing: border-box;
-}
-
-.form-group:last-child {
-    margin-right: 0;
-}
-
-.submit-button {
-    background-color: #ca6702;
+.news-form .submit-button {
+    width: 150px;
+    padding: 10px 20px;
+    background-color: #00A6FB;
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
-    width: 150px;
-    height: fit-content;
-    align-self: flex-end;
+    font-size: 16px;
 }
 
-.submit-button:hover {
-    background-color: #bb3e03;
+.news-section {
+    margin-bottom: 40px;
+}
+
+.news-section h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #00A6FB;
+    text-decoration: underline;
+    margin-bottom: 20px;
 }
 
 .news-list {
@@ -141,197 +140,128 @@ body {
 }
 
 .news-list li {
-    padding-left: 20px;
-    position: relative;
-}
-
-.news-list li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-}
-
-ul {
-    padding: 0;
-}
-
-ul li {
-    background-color: #f1f1f1;
     margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 5px;
-    color: #212529;
-    list-style-type: none;
+    font-size: 20px;
 }
 
-ul li a {
+.news-list li a {
     text-decoration: none;
-    color: #0056b3;
+    color: #000000;
 }
 
-ul li a:hover {
+.news-list li a:hover {
     text-decoration: underline;
 }
 
-table {
+.view-more {
+    font-size: 20px;
+    color: #00A6FB;
+    text-decoration: underline;
+    display: block;
+    margin-top: 20px;
+}
+
+.weather-container,
+.exchange-rates {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 40px;
+}
+
+.weather-container h3,
+.exchange-rates h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #00A6FB;
+}
+
+.weather-details p {
+    margin: 10px 0;
+    font-size: 20px;
+}
+
+.exchange-rates table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
 }
 
-table, th, td {
+.exchange-rates th,
+.exchange-rates td {
+    padding: 10px;
+    text-align: left;
     border: 1px solid #dee2e6;
 }
 
-th, td {
-    padding: 10px;
-    text-align: left;
-}
-
-th {
+.exchange-rates th {
     background-color: #f8f9fa;
     color: #212529;
 }
 
-td {
+.exchange-rates td {
     background-color: #ffffff;
     color: #212529;
 }
 
-.news-form {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-}
-
-.news-form .form-group {
-    flex: 1;
-}
-
-.news-form .submit-button {
-    align-self: flex-end;
-}
-
-.content-container {
-    display: flex;
-    gap: 20px;
-    max-width: 1400px;
-}
-
-.content-container main {
-    flex: 2;
-}
-
-.content-container aside {
-    flex: 1;
-}
-
-.content-container main,
-.content-container aside {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 5px;
-    border: 1px solid #dee2e6;
-}
-
-.content-container h2,
-.content-container h3 {
-    color: #212529;
-}
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin: 20px 0;
-}
-
-.pagination a {
-    padding: 8px 12px;
-    border-radius: 5px;
-    text-decoration: none;
-    color: #fff;
-    background-color: #0a9396;
-    transition: background-color 0.3s ease;
-}
-
-.pagination a:hover {
-    background-color: #086f6d;
-}
-
-.pagination a {
-    display: inline-block;
-    padding: 8px 12px;
-    margin: 2px;
-    text-decoration: none;
-    background-color: #0a9396;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 19px;
-    width: 140px;
-    text-align: center;
-}
-
-.pagination a:hover {
-    background-color: #005f73;
-}
-
-/* Additional styles for dark mode */
+/* Dark Mode Styles */
 @media (prefers-color-scheme: dark) {
     body {
         background-color: #212529;
         color: #f8f9fa;
     }
-    .header {
-        border-bottom: 2px solid #495057;
+
+    .top-bar {
+        background-color: #495057;
     }
-    .form-container {
-        border: 1px solid #495057;
+
+    .nav-bar {
         background-color: #343a40;
     }
-    .form-group label {
-        color: #f8f9fa;
+
+    .news-form-container,
+    .weather-container,
+    .exchange-rates {
+        background-color: #343a40;
+        border: 1px solid #495057;
     }
-    .form-group select,
-    .form-group input[type="text"] {
+
+    .news-form .form-group select,
+    .news-form .form-group input[type="text"] {
         background-color: #495057;
         color: #f8f9fa;
         border: 1px solid #6c757d;
     }
+
     .submit-button {
         background-color: #fd7e14;
     }
+
     .submit-button:hover {
         background-color: #e8590c;
     }
-    ul li {
-        background-color: #343a40;
+
+    .news-list li {
         color: #f8f9fa;
     }
-    ul li a {
+
+    .news-list li a {
         color: #0dcaf0;
     }
-    table, th, td {
+
+    .exchange-rates th,
+    .exchange-rates td {
         border: 1px solid #495057;
     }
-    th {
+
+    .exchange-rates th {
         background-color: #495057;
         color: #f8f9fa;
     }
-    td {
+
+    .exchange-rates td {
         background-color: #343a40;
-        color: #f8f9fa;
-    }
-    .content-container main,
-    .content-container aside {
-        background-color: #343a40;
-        border: 1px solid #495057;
-    }
-    .content-container h2,
-    .content-container h3 {
         color: #f8f9fa;
     }
 }

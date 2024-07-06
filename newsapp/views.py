@@ -3,10 +3,12 @@ from django.shortcuts import render
 
 import urllib.parse
 import requests
-import datetime
+from datetime import datetime
+import pytz
 import os
 
 from .translations import translations
+from .utils.utils import get_translated_day_and_month
 
 NEWS_API_KEY = os.getenv('NEWS_API_ORG_KEY')
 WEATHER_API_KEY = os.getenv('OPEN_WEATHER_API_KEY')
@@ -62,6 +64,20 @@ def get_language(request):
     return language
 
 
+def get_timezone(request):
+    """
+    Get the timezone from the request or session.
+    - Retrieves the timezone from the GET parameters or session.
+    - Defaults to 'UTC' if no timezone is found.
+    - Stores the timezone in the session.
+    """
+    timezone = request.GET.get('timezone')
+    if not timezone:
+        timezone = request.session.get('timezone', 'UTC')
+    request.session['timezone'] = timezone
+    return timezone
+
+
 def main(request):
     """
     Main view function to display the weather and exchange rates.
@@ -72,6 +88,14 @@ def main(request):
     """
     language = get_language(request)
     trans = translations.get(language, translations['en'])
+
+    timezone_str = get_timezone(request)
+    timezone = pytz.timezone(timezone_str)
+    now = datetime.now(timezone)
+
+    translated_day, translated_month = get_translated_day_and_month(now)
+    current_time = now.strftime('%H:%M')
+    current_date = f"{translated_day}, {translated_month} {now.day}, {now.year}"
 
     error_message = None
     weather_error_message = None
@@ -117,6 +141,8 @@ def main(request):
 
     context = {
         'translations': trans,
+        'current_date': current_date,
+        'current_time': current_time,
         'categories': CATEGORIES[language],
         'countries': COUNTRIES if language == 'en' else COUNTRIES_UA,
         'news_data': news_data,
@@ -160,7 +186,7 @@ def fetch_exchange_rates():
     Fetch exchange rates data from PrivatBank API.
     - Retrieves the exchange rates for the required currencies.
     """
-    today = datetime.datetime.today().strftime('%d.%m.%Y')
+    today = datetime.today().strftime('%d.%m.%Y')
     url = f'https://api.privatbank.ua/p24api/exchange_rates?json&date={today}'
     response = requests.get(url)
     data = response.json()
