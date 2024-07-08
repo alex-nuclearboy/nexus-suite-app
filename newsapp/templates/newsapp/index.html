@@ -1,3 +1,6 @@
+{% load static %}
+{% load custom_filters %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +12,6 @@
       href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Roboto:wght@400;500;700;900&display=swap"
       rel="stylesheet"
     />
-    {% load static %}
     <link rel="stylesheet" href="{% static 'newsapp/style.css' %}">
     <link rel="icon" href="{% static 'newsapp/favicon.ico' %}">
 
@@ -48,31 +50,34 @@
     <div class="content-container">
         <main>
             <h1>{{ translations.todays_news_from }} {{ genitive_country_name }}</h1>
-            <section class="news-section">
-                <h2>{{ translations.general }}</h2>
-                <ul class="news-list">
-                    {% for article in news_data %}
-                        <li>
+            {% for category, articles in limited_news.items %}
+                <section class="news-section">
+                    <h2>{{ category_translations|get_item:category }}</h2>
+                    <ul class="news-list">
+                        {% for article in articles %}
+                    <li class="news-item">
+                        <div class="news-time">
+
+                            <small>{{ article.published_at|date:"d " }}{{ article.published_at|translate_month:request.session.language }}{{ article.published_at|date:" H:i" }}</small>
+                        </div>
+                        <div class="news-content">
                             <a href="{{ article.url }}">{{ article.title }}</a> 
-                            - {{ article.source.name }}
-                        </li>
-                    {% endfor %}
-                </ul>
-                <a href="#" class="view-more">{{ translations.all_news_from_general }}</a>
-            </section>
-            <section class="news-section">
-                <h2>{{ translations.politics }}</h2>
-                <ul class="news-list">
-                    {% for article in news_data %}
-                        <li>
-                            <a href="{{ article.url }}">{{ article.title }}</a> 
-                            - {{ article.source.name }}
-                        </li>
-                    {% endfor %}
-                </ul>
-                <a href="#" class="view-more">{{ translations.all_news_from_politics }}</a>
-            </section>
+                            <span>({{ article.source }})</span>
+                        </div>
+                    </li>
+                {% endfor %}
+                    </ul>
+                    <a href="#" class="view-more">
+                        {% if category == 'general' %}
+                            {{ translations.all_main_news }}
+                        {% else %}
+                            {{ translations.all_news_from }} {{ category_translations|get_item:category }}
+                        {% endif %}
+                    </a>
+                </section>
+            {% endfor %}
         </main>
+        
         <aside>
             <div class="news-form-container">
                 <label for="country">{{ translations.select_news_country }}</label>
