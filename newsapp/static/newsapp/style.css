@@ -215,12 +215,18 @@ aside {
 }
 
 .weather-container {
-    background-color: #f8f9fa;
+    background-color: var(--color-bg-light);
     padding: 20px;
     border: 1px solid #dee2e6;
     border-radius: 8px;
     margin-bottom: 40px;
     box-shadow: var(--element-shadow);
+}
+
+.weather-container .time {
+    color: var(--color-secondary);
+    font-weight: 400;
+    font-size: 14px;
 }
 
 .weather-container .weather-header {
@@ -233,7 +239,6 @@ aside {
     font-size: 20px;
     font-weight: 600;
     color: var(--color-primary);
-    margin: 0;
 }
 
 .weather-container h3 {
@@ -248,42 +253,60 @@ aside {
 }
 
 .weather-details {
-    display: flex;
-    align-items: center;
     margin-top: 20px;
 }
 
-.weather-details .temperature {
+.weather-details .main-info {
+    display: flex;
+    align-items: center;
+}
+
+.temperature {
     font-size: 36px;
     font-weight: 600;
     color: var(--color-primary);
-    margin-right: 32px;
+    margin-right: 12px;
 }
 
-.weather-details .other-details {
+.weather-details .main-info img {
+    width: 80px;
+    height: 80px;
+    margin-right: 12px;
+}
+
+.weather-details .condition {
     font-size: 14px;
-    color: var(--color-text);
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-top: 10px; /* Відступ зверху */
 }
 
-.weather-details .other-details p {
+.other-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.other-details p {
+    font-size: 14px;
+    font-weight: normal;
+    color: var(--color-secondary);
     margin: 5px 0;
 }
 
-.weather-details .other-details p strong {
-    color: var(--color-text-gray);
-    font-weight: 600;
+.other-details p strong {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--color-primary);
 }
 
-.weather-details .other-details p span {
-    color: var(--color-primary);
-    font-weight: 400;
+.weather-form-container {
+    margin-top: 20px;
 }
 
 .weather-form {
     display: flex;
     gap: 20px;
     align-items: center;
-    margin-top: 20px;
 }
 
 .weather-form .form-group {
