@@ -1,4 +1,3 @@
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render
 from django.utils import timezone
 from django.http import JsonResponse
@@ -11,10 +10,9 @@ import pytz
 import os
 
 from .translations import translations
-from .utils.utils import get_translated_day_and_month
+from .utils.utils import get_translated_day_and_month, fetch_news_by_category
 
 # API Keys
-NEWS_API_KEY = os.getenv('NEWS_API_ORG_KEY')
 WEATHER_API_KEY = os.getenv('WEATHER_API_KEY')
 GEOCODING_API_KEY = os.getenv('GEOCODING_API_KEY')
 
@@ -24,23 +22,23 @@ geocoder = OpenCageGeocode(GEOCODING_API_KEY)
 # News Categories
 CATEGORIES = {
     'en': [
-        'general', 'business', 'entertainment',
-        'health', 'science', 'sports', 'technology'
+        'general', 'business', 'entertainment', 'health',
+        'science', 'sports', 'technology',
     ],
     'uk': [
-        'загальні', 'бізнес', 'розваги',
-        'здоров\'я', 'наука', 'спорт', 'технології'
+        'загальні', 'бізнес',  'розваги', 'здоров\'я',
+        'наука', 'спорт', 'технології',
     ]
 }
 
 CATEGORY_MAP = {
-    'general': 'загальні',
-    'business': 'бізнес',
-    'entertainment': 'розваги',
-    'health': 'здоров\'я',
-    'science': 'наука',
-    'sports': 'спорт',
-    'technology': 'технології'
+    'general': 'general',
+    'business': 'business',
+    'entertainment': 'entertainment',
+    'health': 'health',
+    'science': 'science',
+    'sports': 'sports',
+    'technology': 'technology'
 }
 
 # Country Names
@@ -124,7 +122,7 @@ def main(request):
     - Displays current date and time in the user's timezone.
     - Retrieves the language from the session.
     - Loads the translations based on the language.
-    - Retrieves and paginates news data based on country.
+    - Retrieves news data based on country.
     - Fetches the weather and exchange rates data.
     - Handles errors and displays appropriate messages.
 
@@ -152,13 +150,8 @@ def main(request):
     default_city = 'Kyiv' if language == 'en' else 'Київ'
     city = request.GET.get('city', default_city)
 
-    category = request.GET.get('category', 'general')
     country = request.GET.get('country', 'us' if language == 'en' else 'ua')
 
-    # Translate the names of categories and countries to display
-    displayed_category = (
-        CATEGORY_MAP.get(category, category) if language == 'uk' else category
-    )
     displayed_country_name = (
         COUNTRIES_UA.get(country, 'Unknown') if language == 'uk'
         else COUNTRIES.get(country, 'Unknown')
@@ -181,17 +174,13 @@ def main(request):
 
     exchange_rates = fetch_exchange_rates()
 
-    news_data = fetch_news(category, country, trans)
-
-    # Pagination of news
-    page = request.GET.get('page', 1)
-    paginator = Paginator(news_data, 10)
-    try:
-        news_data = paginator.page(page)
-    except PageNotAnInteger:
-        news_data = paginator.page(1)
-    except EmptyPage:
-        news_data = paginator.page(paginator.num_pages)
+    limited_news = {}
+    for category in CATEGORY_MAP.keys():
+        try:
+            articles = fetch_news_by_category(category, country, trans)
+            limited_news[category] = articles[:5]
+        except ValueError:
+            limited_news[category] = []
 
     context = {
         'translations': trans,
@@ -199,17 +188,18 @@ def main(request):
         'current_time': current_time,
         'categories': CATEGORIES[language],
         'countries': COUNTRIES if language == 'en' else COUNTRIES_UA,
-        'news_data': news_data,
         'weather_data': weather_data,
         'exchange_rates': exchange_rates,
-        'selected_category': displayed_category,
+        'limited_news': limited_news,
         'selected_city': city,
         'selected_country': country,
         'selected_country_name': displayed_country_name,
         'genitive_country_name': genitive_country_name,
         'error_message': error_message,
         'weather_error_message': weather_error_message,
+        'category_translations': {k: trans[k] for k in CATEGORY_MAP.keys()},
     }
+
     return render(request, 'newsapp/index.html', context)
 
 
@@ -305,37 +295,3 @@ def fetch_exchange_rates():
     ]
     exchange_rates.sort(key=lambda x: required_currencies.index(x['currency']))
     return exchange_rates
-
-
-def fetch_news(category, country, trans):
-    """
-    Fetch news data from NewsAPI.
-    - Retrieves news data for the specified category and country.
-    - Raises a ValueError if there is an error fetching news.
-
-    Parameters:
-    category (str): The news category.
-    country (str): The country code.
-    trans (dict): The translation dictionary.
-
-    Returns:
-    list: A list of news articles.
-    """
-    # Translate the category into English if necessary
-    if category in CATEGORY_MAP.values():
-        category = list(CATEGORY_MAP.keys())[
-            list(CATEGORY_MAP.values()).index(category)
-        ]
-
-    url = (
-        f'https://newsapi.org/v2/top-headlines?country={country}'
-        f'&category={category}&apiKey={NEWS_API_KEY}'
-    )
-    response = requests.get(url)
-    data = response.json()
-    if response.status_code != 200:
-        raise ValueError(
-            trans['error_fetching_news']
-            % {'error': data.get('message', 'Unknown error')}
-        )
-    return data['articles']
