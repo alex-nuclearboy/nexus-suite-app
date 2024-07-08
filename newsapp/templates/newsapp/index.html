@@ -93,20 +93,27 @@
                     <span class="city_name">{{ selected_city }}</span>
                     <h3>{{ translations.weather }}</h3>
                 </div>
-                
-                {% if weather_error_message %}
-                    <div class="alert-error">{{ weather_error_message }}</div>
-                {% else %}
+                {% if weather_data %}
+                    <p class="time">{{ weather_data.update_time }}</p>
                     <div class="weather-details">
-                        <div class="temperature">{{ weather_data.main.temp }}°C</div>
-                        <div class="other-details">
-                            <p><span>{{ translations.condition }}</span>: <strong>{{ weather_data.weather.0.description }}</strong></p>
-                            <p><span>{{ translations.humidity }}</span>: <strong>{{ weather_data.main.humidity }}%</strong></p>
-                            <p><span>{{ translations.wind }}</span>: <strong>{{ weather_data.wind.speed }} {{ translations.kph }}</strong></p>
+                        <div class="main-info">
+                            <div class="temperature">{{ weather_data.temperature }}°C</div>
+                            <img src="{{ weather_data.icon_url }}" alt="Weather Icon">
+                            <div class="other-details">
+                                <p><span>{{ translations.humidity }}</span>: <strong>{{ weather_data.humidity }}%</strong></p>
+                                <p><span>{{ translations.pressure }}</span>: <strong>{{ weather_data.pressure }} {{ translations.mmHg }}</strong></p>
+                                <p><span>{{ translations.wind }}</span>: <strong>{{ weather_data.wind }} {{ translations.kph }}</strong></p>
+                            </div>
                         </div>
+                        <p class="condition"><strong>{{ weather_data.condition }}</strong></p>
                     </div>
+                {% else %}
+                    <p>{{ translations.unable_to_retrieve_weather }}</p>
+                    {% if weather_error_message %}
+                        <div class="alert-error">{{ weather_error_message }}</div>
+                    {% endif %}
                 {% endif %}
-            
+
                 <div class="weather-form-container">
                     <label for="city">{{ translations.enter_city_for_weather }}</label>
                     <form method="GET" action="{% url 'newsapp:index' %}" class="weather-form">
