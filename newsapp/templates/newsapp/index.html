@@ -52,22 +52,27 @@
             <h1>{{ translations.todays_news_from }} {{ genitive_country_name }}</h1>
             {% for category, articles in limited_news.items %}
                 <section class="news-section">
-                    <h2>{{ category_translations|get_item:category }}</h2>
+                    <h2>
+                        <a href="{% url 'newsapp:news_by_category' category %}?country={{ selected_country }}" class="category-link">
+                            {{ category_translations|get_item:category }}
+                        </a>
+                    </h2>
                     <ul class="news-list">
                         {% for article in articles %}
-                    <li class="news-item">
-                        <div class="news-time">
-
-                            <small>{{ article.published_at|date:"d " }}{{ article.published_at|translate_month:request.session.language }}{{ article.published_at|date:" H:i" }}</small>
-                        </div>
-                        <div class="news-content">
-                            <a href="{{ article.url }}">{{ article.title }}</a> 
-                            <span>({{ article.source }})</span>
-                        </div>
-                    </li>
-                {% endfor %}
+                        <li class="news-item">
+                            <div class="news-time">
+                                <small>
+                                    {{ article.published_at|format_time_filter:request.session.language }}
+                                </small>
+                            </div>
+                            <div class="news-content">
+                                <a href="{{ article.url }}">{{ article.title }}</a> 
+                                <span>({{ article.source }})</span>
+                            </div>
+                        </li>
+                        {% endfor %}
                     </ul>
-                    <a href="#" class="view-more">
+                    <a href="{% url 'newsapp:news_by_category' category %}" class="view-more">
                         {% if category == 'general' %}
                             {{ translations.all_main_news }}
                         {% else %}
@@ -96,7 +101,9 @@
             <div class="weather-container">
                 <div class="weather-header">
                     <span class="city_name">{{ selected_city }}</span>
-                    <h3>{{ translations.weather }}</h3>
+                    <div>
+                        <a href="{% url 'newsapp:weather' %}" class="weather-link">{{ translations.weather }} ></a>
+                    </div>
                 </div>
                 {% if weather_data %}
                     <p class="time">{{ weather_data.update_time }}</p>
@@ -120,7 +127,6 @@
                 {% endif %}
 
                 <div class="weather-form-container">
-                    <label for="city">{{ translations.enter_city_for_weather }}</label>
                     <form method="GET" action="{% url 'newsapp:index' %}" class="weather-form">
                         <input type="hidden" name="country" value="{{ selected_country }}">
                         <div class="form-group">
@@ -132,15 +138,15 @@
             </div>
             <div class="exchange-rates">
                 <div class="exchange-rates-header">
-                    <h3>{{ translations.exchange_rates }}</h3>
+                    <a href="{% url 'newsapp:exchange_rates' %}" class="exchange-rate-link">{{ translations.exchange_rates }} ></a>
                 </div>
                 <table class="exchange-rates-table">
                     <thead>
                         <tr>
                             <th></th>
-                            <th>{{ translations.rate_nb }}</th>
-                            <th>{{ translations.sale_rate }}</th>
-                            <th>{{ translations.purchase_rate }}</th>
+                            <th>{{ translations.rate }}</th>
+                            <th>{{ translations.purchase }}</th>
+                            <th>{{ translations.sale }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -148,8 +154,8 @@
                             <tr class="{% cycle 'odd' 'even' %}">
                                 <td>{{ rate.currency }}</td>
                                 <td class="rate-value">{{ rate.saleRateNB }}</td>
-                                <td class="rate-value">{{ rate.saleRate|default_if_none:"-" }}</td>
                                 <td class="rate-value">{{ rate.purchaseRate|default_if_none:"-" }}</td>
+                                <td class="rate-value">{{ rate.saleRate|default_if_none:"-" }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
