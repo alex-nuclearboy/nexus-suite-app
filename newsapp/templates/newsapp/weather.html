@@ -1,0 +1,106 @@
+{% load static %}
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="{{ language }}">
+<head>
+    <meta charset="UTF-8"/>
+    <title>{{ translations.weather }}</title>
+    <link rel="stylesheet" href="{% static 'newsapp/style.css' %}">
+    <link rel="icon" href="{% static 'newsapp/favicon.ico' %}">
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            fetch(`/set_timezone/?timezone=${timezone}`, { method: 'GET' });
+        });
+    </script>
+</head>
+<body>
+    <header class="header">
+        <div class="top-bar">
+            <div class="date-time">
+                <span>{{ current_time }} - {{ current_date }}</span>
+            </div>
+            <a href="?lang={% if language == 'en' %}uk{% else %}en{% endif %}" class="language">
+                {% if language == 'en' %}
+                    Українською
+                {% else %}
+                    English
+                {% endif %}
+            </a>
+        </div>
+        <nav class="nav-bar">
+            <a class="brand" href="{% url 'newsapp:index' %}">
+                <span class="accent">Nexus</span>Suite
+            </a>
+            <div class="auth-links">
+                <a href="{% url 'newsapp:index' %}">{{ translations.sign_up }}</a>
+                <a href="{% url 'newsapp:index' %}">{{ translations.login }}</a>
+            </div>
+        </nav>
+    </header>
+    <div class="content-container">
+        <main>
+            <h1>{{ translations.weather_in }} {{ city }}</h1>
+            <h2>{{ country_name }}</h2>
+            {% if weather_data %}
+                <div class="weather-current">
+                    <img src="{{ weather_data.current.icon_url }}" alt="{{ weather_data.current.condition }}">
+                    <p>{{ weather_data.current.condition }}</p>
+                    <p>{{ translations.temperature }}: {{ weather_data.current.temperature_c }}°C / {{ weather_data.current.temperature_f }}°F</p>
+                    <p>{{ translations.feels_like }}: {{ weather_data.current.feelslike_c }}°C / {{ weather_data.current.feelslike_f }}°F</p>
+                    <p>{{ translations.humidity }}: {{ weather_data.current.humidity }}%</p>
+                    <p>{{ translations.wind }}: {{ weather_data.current.wind_kph }} {{ translations.kph }}</p>
+                    <p>{{ translations.pressure }}: {{ weather_data.current.pressure_mb }} {{ translations.mmhg }}</p>
+                    <p>{{ translations.visibility }}: {{ weather_data.current.visibility_km }} км</p>
+                    <p>{{ translations.uv_index }}: {{ weather_data.current.uv_index }}</p>
+                </div>
+                
+                <div class="weather-forecast-day">
+                    <h2>{{ translations.daily_forecast }}</h2>
+                    <div class="forecast-hourly">
+                        {% for hour in weather_data.forecast.0.hour %}
+                            <div class="hour">
+                                <p>{{ hour.time }}</p>
+                                <img src="http:{{ hour.condition.icon }}" alt="{{ hour.condition.text }}">
+                                <p>{{ hour.temp_c }}°C / {{ hour.temp_f }}°F</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="weather-forecast-week">
+                    <h2>{{ translations.weekly_forecast }}</h2>
+                    <div class="forecast-daily">
+                        {% for day in weather_data.forecast %}
+                            <div class="day">
+                                <p>{{ day.date }}</p>
+                                <img src="http:{{ day.day.condition.icon }}" alt="{{ day.day.condition.text }}">
+                                <p>{{ day.day.maxtemp_c }}°C / {{ day.day.maxtemp_f }}°F</p>
+                                <p>{{ day.day.mintemp_c }}°C / {{ day.day.mintemp_f }}°F</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <p>{{ translations.unable_to_retrieve_weather }}</p>
+            {% endif %}
+        </main>
+        <aside>
+            <div class="weather-container">
+                <label for="city">{{ translations.enter_city_for_weather }}</label>
+                {% if error_message %}
+                    <div class="alert-error">{{ error_message }}</div>
+                {% endif %}
+                <form method="GET" action="{% url 'newsapp:weather' %}" class="weather-form">
+                    <div class="form-group">
+                        <input type="text" id="city" name="city" placeholder="{{ translations.enter_city_name }}" value="{{ city }}" required>
+                    </div>
+                    <button type="submit" class="submit-button">{{ translations.update_weather }}</button>
+                </form>
+            </div>
+        </aside>
+    </div>
+</body>
+</html>
