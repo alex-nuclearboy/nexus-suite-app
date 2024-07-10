@@ -17,6 +17,7 @@ requests = "^2.32.3"
 pytz = "^2024.1"
 beautifulsoup4 = "^4.12.3"
 opencage = "^2.4.0"
+pycountry = "^24.6.1"
 
 
 [build-system]
