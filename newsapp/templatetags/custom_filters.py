@@ -1,24 +1,16 @@
 from django import template
-import datetime
+from ..utils.utils import format_time
 
 register = template.Library()
-
-MONTHS_TRANSLATIONS = {
-    'en': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    'uk': ['січ', 'лют', 'бер', 'кві', 'тра', 'чер',
-           'лип', 'сер', 'вер', 'жов', 'лис', 'гру']
-}
 
 
 @register.filter
 def get_item(dictionary, key):
-    return dictionary.get(key)
+    if isinstance(dictionary, dict):
+        return dictionary.get(key)
+    return None
 
 
 @register.filter
-def translate_month(value, lang='en'):
-    if isinstance(value, datetime.date):
-        month_index = value.month - 1
-        return MONTHS_TRANSLATIONS[lang][month_index]
-    return value
+def format_time_filter(date_string, lang='en', format_type='abbr'):
+    return format_time(date_string, lang, format_type)
