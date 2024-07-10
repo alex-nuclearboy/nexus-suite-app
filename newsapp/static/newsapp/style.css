@@ -85,7 +85,7 @@ h1 {
 
 .nav-bar .auth-links a {
     margin-left: 20px;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 400;
     color: var(--color-primary);
     text-decoration: none;
@@ -179,7 +179,7 @@ aside {
     margin-bottom: 40px;
 }
 
-.news-section h2 {
+.category-link {
     font-size: 18px;
     font-weight: 600;
     color: var(--color-brand);
@@ -187,7 +187,7 @@ aside {
     margin-bottom: 20px;
 }
 
-.news-section h2:hover {
+.category-link:hover {
     color: var(--color-brand-dk);
 }
 
@@ -252,6 +252,13 @@ aside {
     box-shadow: var(--element-shadow);
 }
 
+.weather-container label {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
 .weather-container .time {
     color: var(--color-secondary);
     font-weight: 400;
@@ -270,14 +277,15 @@ aside {
     color: var(--color-primary);
 }
 
-.weather-container h3 {
+.weather-container .weather-link {
     font-size: 20px;
     font-weight: 600;
     color: var(--color-brand);
-    margin: 0;
+    text-align: right;
+    text-decoration: none;
 }
 
-.weather-container h3:hover {
+.weather-container .weather-link:hover {
     color: var(--color-brand-dk);
 }
 
@@ -342,13 +350,6 @@ aside {
     flex: 1;
 }
 
-.weather-form .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 14px;
-    font-weight: bold;
-}
-
 .weather-form .form-group input[type="text"] {
     width: 100%;
     padding: 8px;
@@ -358,6 +359,7 @@ aside {
     color: #212529;
     font-size: 14px;
     height: 24px;
+    margin-top: 4px;
 }
 
 .weather-form .submit-button {
@@ -392,14 +394,19 @@ aside {
     box-shadow: var(--element-shadow);
 }
 
-.exchange-rates-header h3 {
+.exchange-rates-header {
+    padding-bottom: 20px;
+    text-align: right;
+}
+.exchange-rate-link {
     font-size: 20px;
     font-weight: 600;
     color: var(--color-brand);
     text-align: right;
+    text-decoration: none;
 }
 
-.exchange-rates-header h3:hover {
+.exchange-rate-link:hover {
     color: var(--color-brand-dk);
 }
 
@@ -437,6 +444,95 @@ aside {
 .exchange-rates-table tr.even {
     background-color: #f1f1f1;
 }
+
+.category-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.category-item {
+    margin-bottom: 20px;
+}
+
+.category-item a {
+    font-size: 18px;
+    color: var(--color-brand);
+    text-decoration: none;
+}
+
+.category-item a:hover {
+    text-decoration: underline;
+    color: var(--color-brand-dk);
+}
+
+.category-item a.active {
+    color: var(--color-primary);
+}
+
+.currency-converter-section {
+    padding: 20px;
+    background-color: var(--color-bg-light);
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: var(--element-shadow);
+}
+
+.currency-converter-section label {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.currency-converter-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.currency-converter-form .form-group {
+    margin-bottom: 10px;
+}
+
+.currency-converter-form label {
+    display: block;
+    margin-bottom: 8px;
+    margin-top: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.currency-converter-form select,
+.currency-converter-form input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #ffffff;
+    color: var(--color-primary);
+    font-size: 14px;
+}
+
+.currency-converter-form button {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--color-brand);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.currency-converter-form button:hover {
+    background-color: var(--color-brand-dk);
+}
+
+
+
 
 /* Dark Mode Styles */
 @media (prefers-color-scheme: dark) {
