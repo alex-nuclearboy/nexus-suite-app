@@ -1,0 +1,112 @@
+{% load static %}
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ translations.exchange_rates }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Roboto:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'newsapp/style.css' %}">
+    <link rel="icon" href="{% static 'newsapp/favicon.ico' %}">
+</head>
+<body>
+    <header class="header">
+        <div class="top-bar">
+            <div class="date-time">
+                <span>{{ current_time }} - {{ current_date }}</span>
+            </div>
+            <a href="?lang={% if request.session.language == 'en' %}uk{% else %}en{% endif %}" class="language">
+                {% if request.session.language == 'en' %}
+                    Українською
+                {% else %}
+                    English
+                {% endif %}
+            </a>
+        </div>
+        <nav class="nav-bar">
+            <a class="brand" href="{% url 'newsapp:index' %}">
+                <span class="accent">Nexus</span>Suite
+            </a>
+
+            <div class="auth-links">
+                <a href="{% url 'newsapp:index' %}">{{ translations.sign_up }}</a>
+                <a href="{% url 'newsapp:index' %}">{{ translations.login }}</a>
+            </div>
+        </nav>
+    </header>
+    <div class="content-container">
+        <main>
+            <h1>{{ translations.exchange_rates }}</h1>
+            <section class="exchange-rates-section">
+                <table class="exchange-rates-table">
+                    <thead>
+                        <tr>
+                            <th>{{ translations.currency }}</th>
+                            <th>{{ translations.code }}</th>
+                            <th>{{ translations.rate_nb }}</th>
+                            <th>{{ translations.purchase_rate }}</th>
+                            <th>{{ translations.sale_rate }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rate in exchange_rates %}
+                            <tr class="{% cycle 'even' 'odd' %}">
+                                <td>{{ currency_names|get_item:rate.currency }}</td>
+                                <td>{{ rate.currency }}</td>
+                                <td class="rate-value">{{ rate.saleRateNB }}</td>
+                                <td class="rate-value">{{ rate.purchaseRate|default_if_none:"-" }}</td>
+                                <td class="rate-value">{{ rate.saleRate|default_if_none:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+        </main>
+        <aside>
+            <section class="currency-converter-section">
+                <label>{{ translations.currency_converter }}</label>
+                <form method="POST" action="{% url 'newsapp:convert_currency' %}" class="currency-converter-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="from_currency">{{ translations.from_currency }}</label>
+                        <select id="from_currency" name="from_currency">
+                            <option value="UAH">{{ translations.currency_uah }}</option>
+                            {% for rate in exchange_rates %}
+                                <option value="{{ rate.currency }}" {% if rate.currency == from_currency %}selected{% endif %}>
+                                    {{ currency_names|get_item:rate.currency }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="to_currency">{{ translations.to_currency }}</label>
+                        <select id="to_currency" name="to_currency">
+                            <option value="UAH">{{ translations.currency_uah }}</option>
+                            {% for rate in exchange_rates %}
+                                <option value="{{ rate.currency }}" {% if rate.currency == to_currency %}selected{% endif %}>
+                                    {{ currency_names|get_item:rate.currency }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">{{ translations.amount }}</label>
+                        <input type="number" id="amount" name="amount" value="{{ amount|default:0 }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="converted_amount">{{ translations.converted_amount }}</label>
+                        <input type="text" id="converted_amount" name="converted_amount" value="{{ converted_amount }}" readonly style="background-color: #e9ecef;">
+                    </div>
+                    <button type="submit" class="submit-button">{{ translations.convert }}</button>
+                </form>
+            </section>
+        </aside>
+    </div>
+</body>
+</html>
