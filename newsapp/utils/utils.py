@@ -1,9 +1,9 @@
 from django.core.cache import cache
+from django.http import JsonResponse
+from django.utils import timezone
 
 from datetime import datetime, timedelta
-import requests
-import os
-import re
+import pytz
 
 DAYS_TRANSLATIONS = {
     'en': [
@@ -39,19 +39,70 @@ MONTHS_TRANSLATIONS = {
     }
 }
 
-NEWS_API_KEY = os.getenv('NEWS_API_KEY')
+
+def get_language(request):
+    """
+    Gets the language from the request or session.
+
+    This function retrieves the language code from the GET parameters
+    or the session. If no language is found, it defaults to English ('en').
+    The retrieved language code is then stored in the session.
+
+    Parameters:
+    request (HttpRequest): The request object containing the GET parameters
+                           and session.
+
+    Returns:
+    str: The language code.
+    """
+    language = request.GET.get('lang')
+    if not language:
+        language = request.session.get('language', 'en')
+    request.session['language'] = language
+    return language
+
+
+def set_timezone(request):
+    """
+    Sets the user's timezone based on the request.
+
+    This function retrieves the 'timezone' parameter from the GET request,
+    activates the timezone if it is valid, and stores the timezone in the
+    user's session. It handles invalid timezone errors gracefully.
+
+    Parameters:
+    request (HttpRequest): The request containing the 'timezone' parameter
+                           in the GET query string.
+
+    Returns:
+    JsonResponse: A response with a JSON object indicating the status
+                  of the operation.
+    """
+    timezone_str = request.GET.get('timezone')
+    if timezone_str:
+        try:
+            timezone.activate(pytz.timezone(timezone_str))
+            request.session['django_timezone'] = timezone_str
+        except pytz.UnknownTimeZoneError:
+            pass
+    return JsonResponse({'status': 'success'})
 
 
 def get_translated_day_and_month(date_obj, language='en', format_type='full'):
     """
-    Translate the day of the week and month name to the specified language.
+    Translates the day of the week and month name to the specified language.
+
+    This function translates the day of the week and month name from a given
+    datetime object to the specified language ('en' or 'uk').
+    It caches the result until the end of the day to improve performance.
 
     Parameters:
-    dt (datetime): The datetime object to translate.
+    date_obj (datetime): The datetime object to translate.
     language (str): The language code ('en' or 'uk').
+    format_type (str): The format type for the month ('full' or 'abbr').
 
     Returns:
-    tuple: Translated day of the week and month name.
+    tuple: A tuple containing the translated day of the week and month name.
     """
     cache_key = (
         f"translated_day_month_{date_obj.strftime('%Y-%m-%d')}"
@@ -78,6 +129,21 @@ def get_translated_day_and_month(date_obj, language='en', format_type='full'):
 
 
 def format_time(date_string, lang='en', format_type='abbr'):
+    """
+    Formats the date string to include translated month names.
+
+    This function formats a date string to include the translated month name
+    based on the specified language ('en' or 'uk') and format type
+    ('full' or 'abbr').
+
+    Parameters:
+    date_string (str): The date string in the format 'DD MM HH:MM'.
+    lang (str): The language code ('en' or 'uk').
+    format_type (str): The format type for the month ('full' or 'abbr').
+
+    Returns:
+    str: The formatted date string with translated month name.
+    """
     try:
         day, month, time = date_string.split(' ', 2)
         month_index = int(month) - 1
@@ -85,60 +151,3 @@ def format_time(date_string, lang='en', format_type='abbr'):
         return f"{day} {translated_month} {time}"
     except (ValueError, IndexError):
         return date_string
-
-
-def fetch_news_by_category(category, country, transl):
-    """
-    Fetch news data from NewsAPI.
-    - Retrieves news data for the specified category and country.
-    - Raises a ValueError if there is an error fetching news.
-
-    Parameters:
-    category (str): The news category.
-    country (str): The country code.
-    transl (dict): The translation dictionary.
-    """
-
-    cache_key = f'news_{category}_{country}'
-    cached_news = cache.get(cache_key)
-
-    if cached_news:
-        return cached_news
-
-    url = (
-        f'https://newsapi.org/v2/top-headlines?country={country}'
-        f'&category={category}&apiKey={NEWS_API_KEY}'
-    )
-    response = requests.get(url)
-    data = response.json()
-    if response.status_code != 200:
-        error_msg = transl['error_fetching_news'].format(
-            error=data.get('message', 'Unknown error')
-        )
-        raise ValueError(error_msg)
-
-    articles = []
-    for article in data['articles']:
-        # Convert to datetime object
-        published_at = datetime.fromisoformat(article['publishedAt'][:-1])
-
-        title = article['title']
-        source = article['source']['name']
-
-        # Extract source from title if it exists at the end
-        match = re.search(r' - ([^-]+)$', title)
-        if match:
-            title = title[:match.start()]
-            source = match.group(1).strip()
-
-        articles.append({
-            'title': title,
-            'url': article['url'],
-            'source': source,
-            'published_at': published_at.strftime('%d %m %H:%M')
-        })
-
-    # Cache the news data for 1 day
-    cache.set(cache_key, articles, timeout=60*60*24)
-
-    return articles
