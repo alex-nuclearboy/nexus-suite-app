@@ -5,24 +5,61 @@ import pycountry
 import requests
 import os
 
+# API key for OpenCage Geocoding
 GEOCODING_API_KEY = os.getenv('GEOCODING_API_KEY')
 
 # Initialize geocoder
 geocoder = OpenCageGeocode(GEOCODING_API_KEY)
 
+# Country name mappings for different languages
+COUNTRIES = {
+    'ua': 'Ukraine',
+    'us': 'USA',
+    'gb': 'United Kingdom',
+    'fr': 'France',
+    'de': 'Germany',
+    'pl': 'Poland'
+}
+
+COUNTRIES_UA = {
+    'ua': 'Україна',
+    'us': 'США',
+    'gb': 'Велика Британія',
+    'fr': 'Франція',
+    'de': 'Німеччина',
+    'pl': 'Польща'
+}
+
+COUNTRIES_GENITIVE_UA = {
+    'ua': 'України',
+    'us': 'США',
+    'gb': 'Великої Британії',
+    'fr': 'Франції',
+    'de': 'Німеччини',
+    'pl': 'Польщі'
+}
+
 
 def get_city_and_country_info(city_name, language='en'):
     """
-    Retrieve city name in English, country code, and country name
-    in specified language.
+    Retrieves city name in English, country code, and country name
+    in the specified language.
+
+    This function uses the OpenCage Geocoding API to fetch the city name
+    in English, the corresponding country code, and the country name
+    in the specified language.
+    The data is cached for 1 hour to improve performance.
 
     Parameters:
-    city_name (str): The city name to be translated.
-    language (str): The language code ('en' or 'uk').
+    city_name (str): The name of the city to be translated.
+    language (str): The language code ('en' or 'uk'). Defaults to 'en'.
 
     Returns:
-    tuple: The city name in English, the country code,
-           and the country name in the specified language.
+    tuple: A tuple containing the city name in English, the country code,
+    and the country name in the specified language.
+
+    Raises:
+    ValueError: If the city name could not be geocoded.
     """
     cache_key = f'city_country_info_{city_name}_{language}'
     city_country_info = cache.get(cache_key)
@@ -48,14 +85,21 @@ def get_city_and_country_info(city_name, language='en'):
 
 def get_country_name(country_code, language):
     """
-    Get the country name in the specified language.
+    Gets the country name in the specified language.
+
+    This function uses the pycountry library to fetch the country name
+    in the specified language. If the language is Ukrainian, it uses
+    Wikipedia's API to fetch the Ukrainian name of the country.
 
     Parameters:
-    country_code (str): The country code.
+    country_code (str): The country code (ISO 3166-1 alpha-2).
     language (str): The language code ('en' or 'uk').
 
     Returns:
     str: The country name in the specified language.
+
+    Raises:
+    ValueError: If the country name could not be fetched.
     """
     country = pycountry.countries.get(alpha_2=country_code)
 
@@ -70,13 +114,20 @@ def get_country_name(country_code, language):
 
 def get_country_name_uk(country_name_en):
     """
-    Fetch the Ukrainian name of the country using Wikipedia's API.
+    Fetches the Ukrainian name of the country using Wikipedia's API.
+
+    This function uses Wikipedia's API to fetch the Ukrainian name of the
+    country based on its English name. If the Ukrainian name is not found,
+    it defaults to the English name.
 
     Parameters:
     country_name_en (str): The country name in English.
 
     Returns:
     str: The country name in Ukrainian.
+
+    Raises:
+    Exception: If there is an error fetching the country name.
     """
     try:
         url = "https://en.wikipedia.org/w/api.php"
