@@ -106,18 +106,18 @@
                     </div>
                 </div>
                 {% if weather_data %}
-                    <p class="time">{{ weather_data.update_time }}</p>
+                    <p class="time">{{ weather_data.current.update_time }}</p>
                     <div class="weather-details">
                         <div class="main-info">
-                            <div class="temperature">{{ weather_data.temperature }}°C</div>
-                            <img src="{{ weather_data.icon_url }}" alt="Weather Icon">
+                            <div class="temperature">{{ weather_data.current.temperature_c }}°C</div>
+                            <img src="{{ weather_data.current.icon_url }}" alt="Weather Icon">
                             <div class="other-details">
-                                <p><span>{{ translations.humidity }}</span>: <strong>{{ weather_data.humidity }}%</strong></p>
-                                <p><span>{{ translations.pressure }}</span>: <strong>{{ weather_data.pressure }} {{ translations.mmHg }}</strong></p>
-                                <p><span>{{ translations.wind }}</span>: <strong>{{ weather_data.wind }} {{ translations.kph }}</strong></p>
+                                <p><span>{{ translations.humidity }}</span>: <strong>{{ weather_data.current.humidity }}%</strong></p>
+                                <p><span>{{ translations.pressure }}</span>: <strong>{{ weather_data.current.pressure_mm }} {{ translations.mmHg }}</strong></p>
+                                <p><span>{{ translations.wind }}</span>: <strong>{{ weather_data.current.wind_mps }} {{ translations.mps }}</strong></p>
                             </div>
                         </div>
-                        <p class="condition"><strong>{{ weather_data.condition }}</strong></p>
+                        <p class="condition"><strong>{{ weather_data.current.condition }}</strong></p>
                     </div>
                 {% else %}
                     <p>{{ translations.unable_to_retrieve_weather }}</p>
