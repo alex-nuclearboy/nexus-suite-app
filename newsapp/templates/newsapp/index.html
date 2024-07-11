@@ -112,9 +112,9 @@
                             <div class="temperature">{{ weather_data.current.temperature_c }}°C</div>
                             <img src="{{ weather_data.current.icon_url }}" alt="Weather Icon">
                             <div class="other-details">
-                                <p><span>{{ translations.humidity }}</span>: <strong>{{ weather_data.current.humidity }}%</strong></p>
-                                <p><span>{{ translations.pressure }}</span>: <strong>{{ weather_data.current.pressure_mm }} {{ translations.mmHg }}</strong></p>
-                                <p><span>{{ translations.wind }}</span>: <strong>{{ weather_data.current.wind_mps }} {{ translations.mps }}</strong></p>
+                                <p><span>{{ translations.humidity_ix }}</span>: <strong>{{ weather_data.current.humidity }}%</strong></p>
+                                <p><span>{{ translations.pressure_ix }}</span>: <strong>{{ weather_data.current.pressure_mm }} {{ translations.mmHg }}</strong></p>
+                                <p><span>{{ translations.wind_ix }}</span>: <strong>{{ weather_data.current.wind_mps }} {{ translations.mps }}</strong></p>
                             </div>
                         </div>
                         <p class="condition"><strong>{{ weather_data.current.condition }}</strong></p>
