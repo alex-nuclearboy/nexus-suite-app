@@ -6,15 +6,22 @@
 <head>
     <meta charset="UTF-8"/>
     <title>{{ translations.weather }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Roboto:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{% static 'newsapp/style.css' %}">
     <link rel="icon" href="{% static 'newsapp/favicon.ico' %}">
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            fetch(`/set_timezone/?timezone=${timezone}`, { method: 'GET' });
-        });
-    </script>
+    <!-- Include timezone.js -->
+    <script src="{% static 'newsapp/js/timezone.js' %}" defer></script>
+
+    <!-- Include weather.js -->
+    <script src="{% static 'newsapp/js/weather.js' %}" defer></script>
+
 </head>
 <body>
     <header class="header">
@@ -42,21 +49,67 @@
     </header>
     <div class="content-container">
         <main>
-            <h1>{{ translations.weather_in }} {{ city }}</h1>
-            <h2>{{ country_name }}</h2>
+            <div class="location-info">
+                <h1>{{ translations.weather_in }} {{ city }}</h1>
+                <h2>{{ country_name }}</h2>
+                <p>{{ translations.update_time }}: {{ weather_data.current.update_time }}</p>
+            </div>
             {% if weather_data %}
-                <div class="weather-current">
+            <div class="weather-overview">
+                <div class="weather-icon">
                     <img src="{{ weather_data.current.icon_url }}" alt="{{ weather_data.current.condition }}">
-                    <p>{{ weather_data.current.condition }}</p>
-                    <p>{{ translations.temperature }}: {{ weather_data.current.temperature_c }}°C / {{ weather_data.current.temperature_f }}°F</p>
-                    <p>{{ translations.feels_like }}: {{ weather_data.current.feelslike_c }}°C / {{ weather_data.current.feelslike_f }}°F</p>
-                    <p>{{ translations.humidity }}: {{ weather_data.current.humidity }}%</p>
-                    <p>{{ translations.wind }}: {{ weather_data.current.wind_kph }} {{ translations.kph }}</p>
-                    <p>{{ translations.pressure }}: {{ weather_data.current.pressure_mb }} {{ translations.mmhg }}</p>
-                    <p>{{ translations.visibility }}: {{ weather_data.current.visibility_km }} км</p>
-                    <p>{{ translations.uv_index }}: {{ weather_data.current.uv_index }}</p>
                 </div>
-                
+                <div class="weather-details">
+                    <div class="temperature" data-temp-c="{{ weather_data.current.temperature_c }}" data-temp-f="{{ weather_data.current.temperature_f }}">
+                        <div class="temp-value" data-temp-c="{{ weather_data.current.temperature_c }}" data-temp-f="{{ weather_data.current.temperature_f }}">
+                            {{ weather_data.current.temperature_c }}<sup class="temp-unit">°C</sup>
+                        </div>
+                    </div>
+                </div>
+                <div class="condition-feelslike">
+                    <div class="condition">{{ weather_data.current.condition }}</div>
+                    <div class="feelslike" data-feelslike-c="{{ weather_data.current.feelslike_c }}" data-feelslike-f="{{ weather_data.current.feelslike_f }}" data-trans-feelslike="{{ translations.feels_like }}">
+                        {{ translations.feels_like }} {{ weather_data.current.feelslike_c }}°C
+                    </div>
+                </div>
+            </div>
+            
+            <div class="additional-details">
+                <div class="detail">
+                    <span>{{ translations.wind }}</span>
+                    <span class="wind" data-wind-mps="{{ weather_data.current.wind_mps }}" data-wind-kph="{{ weather_data.current.wind_kph }}" data-wind-mph="{{ weather_data.current.wind_mph }}" data-wind-dir="{{ weather_data.current.wind_dir }}" data-trans-wind="{{ translations.wind }}" data-trans-mps="{{ translations.mps }}" data-trans-kph="{{ translations.kph }}" data-trans-mph="{{ translations.mph }}">
+                        <i class="bi {{ weather_data.current.wind_dir }}"></i> {{ weather_data.current.wind_mps }} {{ translations.mps }}
+                    </span>
+                </div>
+                <div class="detail">
+                    <span>{{ translations.humidity }}</span>
+                    <span class="humidity" data-trans-humidity="{{ translations.humidity }}">{{ weather_data.current.humidity }}%</span>
+                </div>
+                <div class="detail">
+                    <span>{{ translations.pressure }}</span>
+                    <span class="pressure" data-pressure-mmhg="{{ weather_data.current.pressure_mm }}" data-pressure-mb="{{ weather_data.current.pressure_mb }}" data-trans-pressure="{{ translations.pressure }}" data-trans-mmhg="{{ translations.mmhg }}" data-trans-mb="{{ translations.mb }}">
+                        {{ weather_data.current.pressure_mm }} {{ translations.mmhg }}
+                    </span>
+                </div>
+                <div class="detail">
+                    <span>{{ translations.visibility }}</span>
+                    <span class="visibility" data-visibility-km="{{ weather_data.current.visibility_km }}" data-visibility-miles="{{ weather_data.current.visibility_miles }}" data-trans-visibility="{{ translations.visibility }}" data-trans-km="{{ translations.km }}" data-trans-miles="{{ translations.miles }}" data-lang="{{ language }}">
+                        {{ weather_data.current.visibility_km }} {{ translations.km }}
+                    </span>
+                </div>
+                <div class="detail">
+                    <span>{{ translations.dewpoint }}</span>
+                    <span class="dewpoint" data-dewpoint-c="{{ weather_data.current.dewpoint_c }}" data-dewpoint-f="{{ weather_data.current.dewpoint_f }}" data-trans-dewpoint="{{ translations.dewpoint }}">
+                        {{ weather_data.current.dewpoint_c }}°C
+                    </span>
+                </div>
+                <div class="detail">
+                    <span>{{ translations.uv_index }}</span>
+                    <span>{{ weather_data.current.uv_index }}</span>
+                </div>
+            </div>
+            
+
                 <div class="weather-forecast-day">
                     <h2>{{ translations.daily_forecast }}</h2>
                     <div class="forecast-hourly">
@@ -64,7 +117,9 @@
                             <div class="hour">
                                 <p>{{ hour.time }}</p>
                                 <img src="http:{{ hour.condition.icon }}" alt="{{ hour.condition.text }}">
-                                <p>{{ hour.temp_c }}°C / {{ hour.temp_f }}°F</p>
+                                <p class="temperature" data-temp-c="{{ hour.temp_c }}" data-temp-f="{{ hour.temp_f }}">
+                                    {{ hour.temp_c }}°C / {{ hour.temp_f }}°F
+                                </p>
                             </div>
                         {% endfor %}
                     </div>
@@ -77,8 +132,12 @@
                             <div class="day">
                                 <p>{{ day.date }}</p>
                                 <img src="http:{{ day.day.condition.icon }}" alt="{{ day.day.condition.text }}">
-                                <p>{{ day.day.maxtemp_c }}°C / {{ day.day.maxtemp_f }}°F</p>
-                                <p>{{ day.day.mintemp_c }}°C / {{ day.day.mintemp_f }}°F</p>
+                                <p class="temperature" data-temp-c="{{ day.day.maxtemp_c }}" data-temp-f="{{ day.day.maxtemp_f }}">
+                                    {{ day.day.maxtemp_c }}°C / {{ day.day.maxtemp_f }}°F
+                                </p>
+                                <p class="temperature" data-temp-c="{{ day.day.mintemp_c }}" data-temp-f="{{ day.day.mintemp_f }}">
+                                    {{ day.day.mintemp_c }}°C / {{ day.day.mintemp_f }}°F
+                                </p>
                             </div>
                         {% endfor %}
                     </div>
@@ -89,7 +148,7 @@
         </main>
         <aside>
             <div class="weather-container">
-                <label for="city">{{ translations.enter_city_for_weather }}</label>
+                <label for="city">{{ translations.change_city_for_weather }}</label>
                 {% if error_message %}
                     <div class="alert-error">{{ error_message }}</div>
                 {% endif %}
@@ -99,6 +158,49 @@
                     </div>
                     <button type="submit" class="submit-button">{{ translations.update_weather }}</button>
                 </form>
+            </div>
+            <div class="unit-selection-box">
+                <label class="unit-selection-title">{{ translations.measurement_units }}</label>
+                <div class="unit-selection">
+                    <div class="unit-option">
+                        <label><b>{{ translations.temperature }}:</b></label>
+                        <div class="unit-radio-group">
+                            <input type="radio" id="temp-c" name="temperature-unit" value="c" checked>
+                            <label for="temp-c">°C</label>
+                            <input type="radio" id="temp-f" name="temperature-unit" value="f">
+                            <label for="temp-f">°F</label>
+                        </div>
+                    </div>
+                    <div class="unit-option">
+                        <label><b>{{ translations.pressure }}:</b></label>
+                        <div class="unit-radio-group">
+                            <input type="radio" id="pressure-mmhg" name="pressure-unit" value="mmhg" checked>
+                            <label for="pressure-mmhg">{{ translations.mmhg }}</label>
+                            <input type="radio" id="pressure-mb" name="pressure-unit" value="mb">
+                            <label for="pressure-mb">{{ translations.mb }}</label>
+                        </div>
+                    </div>
+                    <div class="unit-option">
+                        <label><b>{{ translations.wind }}:</b></label>
+                        <div class="unit-radio-group">
+                            <input type="radio" id="wind-mps" name="wind-unit" value="mps" checked>
+                            <label for="wind-mps">{{ translations.mps }}</label>
+                            <input type="radio" id="wind-kph" name="wind-unit" value="kph">
+                            <label for="wind-kph">{{ translations.kph }}</label>
+                            <input type="radio" id="wind-mph" name="wind-unit" value="mph">
+                            <label for="wind-mph">{{ translations.mph }}</label>
+                        </div>
+                    </div>
+                    <div class="unit-option">
+                        <label><b>{{ translations.visibility }}:</b></label>
+                        <div class="unit-radio-group">
+                            <input type="radio" id="visibility-km" name="visibility-unit" value="km" checked>
+                            <label for="visibility-km">{{ translations.km }}</label>
+                            <input type="radio" id="visibility-miles" name="visibility-unit" value="miles">
+                            <label for="visibility-miles">{{ translations.miles }}</label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </aside>
     </div>
