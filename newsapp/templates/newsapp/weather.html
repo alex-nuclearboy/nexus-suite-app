@@ -1,5 +1,6 @@
 {% load static %}
 {% load custom_filters %}
+{% load custom_tags %}
 
 <!DOCTYPE html>
 <html lang="{{ language }}">
@@ -76,36 +77,67 @@
             
             <div class="additional-details">
                 <div class="detail">
-                    <span>{{ translations.wind }}</span>
+                    <span>
+                        <img class="weather-icons" src="{% static 'newsapp/icons/wind.png' %}" alt="Wind">
+                        {{ translations.wind }}
+                    </span>
                     <span class="wind" data-wind-mps="{{ weather_data.current.wind_mps }}" data-wind-kph="{{ weather_data.current.wind_kph }}" data-wind-mph="{{ weather_data.current.wind_mph }}" data-wind-dir="{{ weather_data.current.wind_dir }}" data-trans-wind="{{ translations.wind }}" data-trans-mps="{{ translations.mps }}" data-trans-kph="{{ translations.kph }}" data-trans-mph="{{ translations.mph }}">
                         <i class="bi {{ weather_data.current.wind_dir }}"></i> {{ weather_data.current.wind_mps }} {{ translations.mps }}
                     </span>
                 </div>
                 <div class="detail">
-                    <span>{{ translations.humidity }}</span>
+                    <span>
+                        <img class="weather-icons" src="{% static 'newsapp/icons/humidity.png' %}" alt="Humidity">
+                        {{ translations.humidity }}
+                    </span>
                     <span class="humidity" data-trans-humidity="{{ translations.humidity }}">{{ weather_data.current.humidity }}%</span>
                 </div>
                 <div class="detail">
-                    <span>{{ translations.pressure }}</span>
+                    <span>
+                        <img class="weather-icons" src="{% static 'newsapp/icons/pressure.png' %}" alt="Pressure">
+                        {{ translations.pressure }}
+                    </span>
                     <span class="pressure" data-pressure-mmhg="{{ weather_data.current.pressure_mm }}" data-pressure-mb="{{ weather_data.current.pressure_mb }}" data-trans-pressure="{{ translations.pressure }}" data-trans-mmhg="{{ translations.mmhg }}" data-trans-mb="{{ translations.mb }}">
                         {{ weather_data.current.pressure_mm }} {{ translations.mmhg }}
                     </span>
                 </div>
                 <div class="detail">
-                    <span>{{ translations.visibility }}</span>
+                    <span>
+                        <img class="weather-icons" src="{% static 'newsapp/icons/visibility.png' %}" alt="Visibility">
+                        {{ translations.visibility }}
+                    </span>
                     <span class="visibility" data-visibility-km="{{ weather_data.current.visibility_km }}" data-visibility-miles="{{ weather_data.current.visibility_miles }}" data-trans-visibility="{{ translations.visibility }}" data-trans-km="{{ translations.km }}" data-trans-miles="{{ translations.miles }}" data-lang="{{ language }}">
                         {{ weather_data.current.visibility_km }} {{ translations.km }}
                     </span>
                 </div>
                 <div class="detail">
-                    <span>{{ translations.dewpoint }}</span>
+                    <span>
+                        <img class="weather-icons" src="{% static 'newsapp/icons/dew_point.png' %}" alt="Dew Point">
+                        {{ translations.dewpoint }}
+                    </span>
                     <span class="dewpoint" data-dewpoint-c="{{ weather_data.current.dewpoint_c }}" data-dewpoint-f="{{ weather_data.current.dewpoint_f }}" data-trans-dewpoint="{{ translations.dewpoint }}">
                         {{ weather_data.current.dewpoint_c }}°C
                     </span>
                 </div>
                 <div class="detail">
-                    <span>{{ translations.uv_index }}</span>
+                    <span>
+                        <img class="weather-icons" src="{% static 'newsapp/icons/uv.png' %}" alt="UV Index">
+                        {{ translations.uv_index }}
+                    </span>
                     <span>{{ weather_data.current.uv_index }}</span>
+                </div>
+                <div class="detail">
+                    <img class="sun-icons" src="{% static 'newsapp/icons/sunrise.png' %}" alt="Sunrise">
+                    <span>{{ weather_data.forecast.0.astro.sunrise|format_time_24h }}</span>
+                </div>
+                <div class="detail">
+                    <img class="sun-icons" src="{% static 'newsapp/icons/sunset.png' %}" alt="Sunset">
+                    <span>{{ weather_data.forecast.0.astro.sunset|format_time_24h }}</span>
+                </div>
+                <div class="detail">
+                    <span>{{ translations.moon_phase }}</span>
+                    {% moon_phase_icon weather_data.forecast.0.astro.moon_phase language %}
+
                 </div>
             </div>
             
