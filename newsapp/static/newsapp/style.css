@@ -289,7 +289,7 @@ aside {
     color: var(--color-brand-dk);
 }
 
-.weather-details {
+.weather-container .weather-details {
     margin-top: 20px;
 }
 
@@ -298,12 +298,12 @@ aside {
     align-items: center;
 }
 
-.temperature {
-    font-size: 36px;
+/* .temperature {
+    font-size: 40px;
     font-weight: 600;
     color: var(--color-primary);
     margin-right: 12px;
-}
+} */
 
 .weather-details .main-info img {
     width: 80px;
@@ -627,7 +627,6 @@ aside {
 
 .weather-details {
     text-align: left;
-    display: flex;
     flex-direction: column;
     align-items: center;
 }
@@ -642,6 +641,7 @@ aside {
 .temp-value {
     display: inline-flex;
     align-items: flex-start;
+    font-weight: 600;
 }
 
 .temp-unit {
@@ -679,14 +679,29 @@ aside {
     background: var(--color-light);
     padding: 10px 4px;
     margin: 5px;
-    text-align: center;
+    text-align: left;
     font-weight: 600;
     font-size: 16px;
 }
 
-.detail:nth-child(odd) {
-    background: var(--color-bg-light);
+.weather-icons {
+    width: 18px;
+    height: 18px;
+    margin-right: 5px;
 }
+
+.sun-icons {
+    width: 40px;
+    height: 40px;
+    margin-right: 5px;
+}
+
+.moon-icons {
+    width: 40px;
+    height: 40px;
+    margin-right: 5px;
+}
+
 
 .detail span:first-child {
     display: block;
