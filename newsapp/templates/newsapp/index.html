@@ -109,7 +109,7 @@
                     <p class="time">{{ weather_data.current.update_time }}</p>
                     <div class="weather-details">
                         <div class="main-info">
-                            <div class="temperature">{{ weather_data.current.temperature_c }}°C</div>
+                            <div class="temperature"><div class="temp-value">{{ weather_data.current.temperature_c }}<sup class="temp-unit">°C</sup></div></div>
                             <img src="{{ weather_data.current.icon_url }}" alt="Weather Icon">
                             <div class="other-details">
                                 <p><span>{{ translations.humidity_ix }}</span>: <strong>{{ weather_data.current.humidity }}%</strong></p>
