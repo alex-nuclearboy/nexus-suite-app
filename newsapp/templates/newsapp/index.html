@@ -106,7 +106,7 @@
                     </div>
                 </div>
                 {% if weather_data %}
-                    <p class="time">{{ weather_data.current.update_time }}</p>
+                    <p class="time">{{ user_update_time }}</p>
                     <div class="weather-details">
                         <div class="main-info">
                             <div class="temperature"><div class="temp-value">{{ weather_data.current.temperature_c }}<sup class="temp-unit">°C</sup></div></div>
