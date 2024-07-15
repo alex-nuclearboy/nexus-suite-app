@@ -18,6 +18,11 @@ pytz = "^2024.1"
 beautifulsoup4 = "^4.12.3"
 opencage = "^2.4.0"
 pycountry = "^24.6.1"
+pyinflect = "^0.5.1"
+spacy = "^3.7.5"
+translate = "^3.6.1"
+aiohttp = "^3.9.5"
+aiofiles = "^24.1.0"
 
 
 [build-system]
