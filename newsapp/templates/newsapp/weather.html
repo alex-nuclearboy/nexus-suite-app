@@ -50,12 +50,17 @@
     </header>
     <div class="content-container">
         <main>
-            <div class="location-info">
-                <h1>{{ translations.weather_in }} {{ city }}</h1>
-                <h2>{{ country_name }}</h2>
-                <p>{{ translations.update_time }}: {{ weather_data.current.update_time }}</p>
-            </div>
             {% if weather_data %}
+            <div class="location-info">
+                <h1>{{ weather_in_text }} {{ city }}</h1>
+                {% if region %}
+                    <h2>{{ region }}, {{ country_name }}</h2>
+                {% else %}
+                    <h2>{{ country_name }}</h2>
+                {% endif %}
+                <p>{{ translations.update_time }}: {{ user_update_time }}</p>
+                <!-- <p>{{ translations.localtime }}: {{ weather_data.current.localtime }}</p> -->
+            </div>
             <div class="weather-overview">
                 <div class="weather-icon">
                     <img src="{{ weather_data.current.icon_url }}" alt="{{ weather_data.current.condition }}">
@@ -175,7 +180,7 @@
                     </div>
                 </div>
             {% else %}
-                <p>{{ translations.unable_to_retrieve_weather }}</p>
+                <h1>{{ translations.unable_to_retrieve_weather }}</h1>
             {% endif %}
         </main>
         <aside>
@@ -186,7 +191,7 @@
                 {% endif %}
                 <form method="GET" action="{% url 'newsapp:weather' %}" class="weather-form">
                     <div class="form-group">
-                        <input type="text" id="city" name="city" placeholder="{{ translations.enter_city_name }}" value="{{ city }}" required>
+                        <input type="text" id="city" name="city" placeholder="{{ translations.enter_city_name }}" value="" required>
                     </div>
                     <button type="submit" class="submit-button">{{ translations.update_weather }}</button>
                 </form>
