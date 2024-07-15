@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect
 from django.utils import timezone
 
-import requests
+import aiohttp
+from asgiref.sync import sync_to_async
 import pytz
 
 from .utils.translations import translations
 from .utils.utils import (
-    get_translated_day_and_month, get_language, set_timezone
+    get_translated_day_and_month, get_language, set_timezone, get_update_times
 )
 from .utils.location_utils import (
     COUNTRIES, COUNTRIES_UA, COUNTRIES_GENITIVE_UA
@@ -16,15 +17,22 @@ from .utils.exchanger_utils import (
     CURRENCY_MAP, fetch_exchange_rates, convert_currency
 )
 from .utils.news_utils import CATEGORIES, CATEGORY_MAP, fetch_news_by_category
+from .utils.location_utils import process_city_info
+from .utils.exceptions import (
+    CityNotFoundError, InvalidAPIKeyError,
+    UnableToRetrieveWeatherError, GeocodingServiceError
+)
 
 
-def main(request):
+async def main(request):
     """
     Main view function to display the weather, exchange rates, and news.
-    - Displays current date and time in the user's timezone.
+
+    This function:
+    - Displays the current date and time in the user's timezone.
     - Retrieves the language from the session.
     - Loads the translations based on the language.
-    - Retrieves news data based on country.
+    - Retrieves news data based on the selected country.
     - Fetches the weather and exchange rates data.
     - Handles errors and displays appropriate messages.
 
@@ -35,18 +43,22 @@ def main(request):
     Returns:
     HttpResponse: The rendered template with the context data.
     """
-    language = get_language(request)
+    language = await sync_to_async(get_language)(request)
     trans = translations.get(language, translations['en'])
 
-    set_timezone(request)
+    await sync_to_async(set_timezone)(request)
 
-    timezone_str = request.session.get('django_timezone', 'UTC')
+    timezone_str = (
+        await sync_to_async(request.session.get)('django_timezone', 'UTC')
+    )
     user_timezone = pytz.timezone(timezone_str)
     now = timezone.now().astimezone(user_timezone)
 
-    translated_day, translated_month = get_translated_day_and_month(now,
-                                                                    language,
-                                                                    'full')
+    translated_day, translated_month = (
+        await sync_to_async(get_translated_day_and_month)(now,
+                                                          language,
+                                                          'full')
+    )
     current_time = now.strftime('%H:%M')
     current_date = f"{translated_day}, {now.day} {translated_month} {now.year}"
 
@@ -56,9 +68,10 @@ def main(request):
     city = request.GET.get('city', default_city)
 
     country = request.GET.get(
-        'country', request.session.get('selected_country', 'us'
-                                       if language == 'en' else 'ua')
+        'country', await sync_to_async(request.session.get)(
+            'selected_country', 'us' if language == 'en' else 'ua'
         )
+    )
 
     displayed_country_name = (
         COUNTRIES_UA.get(country, 'Unknown') if language == 'uk'
@@ -70,35 +83,46 @@ def main(request):
     )
 
     try:
-        weather_data = fetch_weather_data(
+        weather_data = await fetch_weather_data(
             city, trans, language, data_type='current'
         )
+    except CityNotFoundError as e:
+        weather_error_message = str(e)
+        weather_data = None
     except ValueError as ve:
         weather_error_message = str(ve)
         weather_data = None
-    except requests.RequestException as e:
+    except aiohttp.ClientError as e:
         weather_error_message = (
             trans['unable_to_retrieve_weather'] % {'error': str(e)}
         )
         weather_data = None
 
-    exchange_rates = fetch_exchange_rates(
+    exchange_rates = await sync_to_async(fetch_exchange_rates)(
         filter_currencies={'USD', 'EUR', 'PLN'}
     )
 
     news_data = {}
     for category in CATEGORY_MAP.keys():
         try:
-            articles = fetch_news_by_category(category, country, trans)
+            articles = (
+                await sync_to_async(fetch_news_by_category)(category,
+                                                            country,
+                                                            trans)
+            )
             news_data[category] = articles
         except ValueError:
             news_data[category] = []
 
-    request.session['news_data'] = news_data  # Store news data in session
+    # Store news data in session
+    await sync_to_async(request.session.__setitem__)('news_data', news_data)
 
     limited_news = {
         category: articles[:5] for category, articles in news_data.items()
     }
+
+    formatted_local_update_time, formatted_user_update_time = \
+        get_update_times(weather_data, user_timezone, trans)
 
     context = {
         'translations': trans,
@@ -107,6 +131,8 @@ def main(request):
         'categories': CATEGORIES[language],
         'countries': COUNTRIES if language == 'en' else COUNTRIES_UA,
         'weather_data': weather_data,
+        'local_update_time': formatted_local_update_time,
+        'user_update_time': formatted_user_update_time,
         'exchange_rates': exchange_rates,
         'limited_news': limited_news,
         'selected_city': city,
@@ -121,17 +147,39 @@ def main(request):
     return render(request, 'newsapp/index.html', context)
 
 
-def weather_page(request):
-    language = request.GET.get('lang', request.session.get('language', 'en'))
+async def weather_page(request):
+    """
+    View function to display detailed weather information for a specific city.
+
+    This function:
+    - Retrieves the language from the request or session.
+    - Loads the translations based on the language.
+    - Retrieves the user's timezone.
+    - Fetches detailed weather data for the specified city.
+    - Processes city information to display the correct names and texts.
+    - Handles errors and displays appropriate messages.
+
+    Parameters:
+    request (HttpRequest): The request object containing GET parameters
+                           for 'city' and optionally 'lang'.
+
+    Returns:
+    HttpResponse: The rendered template with the context data.
+    """
+    language = request.GET.get(
+        'lang', await sync_to_async(request.session.get)('language', 'en')
+    )
     trans = translations.get(language, translations['en'])
 
-    timezone_str = request.session.get('django_timezone', 'UTC')
+    timezone_str = (
+        await sync_to_async(request.session.get)('django_timezone', 'UTC')
+    )
     user_timezone = pytz.timezone(timezone_str)
     now = timezone.now().astimezone(user_timezone)
 
-    translated_day, translated_month = get_translated_day_and_month(now,
-                                                                    language,
-                                                                    'full')
+    translated_day, translated_month = (
+        get_translated_day_and_month(now, language, 'full')
+    )
     current_time = now.strftime('%H:%M')
     current_date = f"{translated_day}, {now.day} {translated_month} {now.year}"
 
@@ -140,22 +188,42 @@ def weather_page(request):
     city = request.GET.get('city', default_city)
 
     try:
-        weather_data = fetch_weather_data(
+        weather_data = await fetch_weather_data(
             city, trans, language, data_type='both'
         )
-        city_in_english = weather_data['current']['city']
-        country_name = weather_data['current']['country_name']
-        # country_name = (
-        #     get_country_name(country_code, 'uk') if language == 'uk'
-        #     else get_country_name(country_code, 'en')
-        # )
-    except ValueError as ve:
+        city, region, country_name, weather_in_text = await process_city_info(
+            city,
+            weather_data['geo_city'],
+            weather_data['country_code'],
+            weather_data['geo_country'],
+            weather_data['geo_region'],
+            weather_data['api_country'],
+            weather_data['api_region'],
+            language,
+            trans
+        )
+
+        formatted_local_update_time, formatted_user_update_time = \
+            get_update_times(weather_data, user_timezone, trans)
+
+    except CityNotFoundError as e:
         weather_data = None
-        error_message = str(ve)
-        country_name = None  # Set to None on error
-    except requests.RequestException as e:
-        error_message = trans['unable_to_retrieve_weather'] % {'error': str(e)}
-        country_name = None  # Set to None on error
+        error_message = str(e)
+        country_name = None
+        region = None
+        weather_in_text = trans['weather_in']
+        formatted_local_update_time = 'N/A'
+        formatted_user_update_time = 'N/A'
+    except (
+        InvalidAPIKeyError, UnableToRetrieveWeatherError, GeocodingServiceError
+    ) as e:
+        weather_data = None
+        error_message = str(e)
+        country_name = None
+        region = None
+        weather_in_text = trans['weather_in']
+        formatted_local_update_time = 'N/A'
+        formatted_user_update_time = 'N/A'
 
     context = {
         'translations': trans,
@@ -165,11 +233,14 @@ def weather_page(request):
         'weather_data': weather_data,
         'error_message': error_message,
         'language': language,
-        'city_in_english': city_in_english,
-        'country_name': country_name
+        'country_name': country_name,
+        'region': region,
+        'weather_in_text': weather_in_text,
+        'local_update_time': formatted_local_update_time,
+        'user_update_time': formatted_user_update_time,
     }
 
-    request.session['language'] = language
+    await sync_to_async(request.session.__setitem__)('language', language)
 
     return render(request, 'newsapp/weather.html', context)
 
