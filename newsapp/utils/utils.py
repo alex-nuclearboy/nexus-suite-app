@@ -2,6 +2,7 @@ from django.core.cache import cache
 from django.http import JsonResponse
 from django.utils import timezone
 
+from urllib.parse import quote
 from datetime import datetime, timedelta
 import pytz
 
@@ -151,3 +152,66 @@ def format_time(date_string, lang='en', format_type='abbr'):
         return f"{day} {translated_month} {time}"
     except (ValueError, IndexError):
         return date_string
+
+
+def safe_cache_key(key):
+    """
+    Encodes a given key to ensure it is safe for use in a cache.
+
+    Parameters:
+    key (str): The key to be encoded.
+
+    Returns:
+    str: The encoded key.
+    """
+    return quote(key, safe='')
+
+
+def generate_cache_key(*args):
+    """
+    Generate a safe cache key by encoding its parts.
+
+    Parameters:
+    *args: The parts of the cache key to be joined and encoded.
+
+    Returns:
+    str: The generated safe cache key.
+    """
+    return ':'.join([safe_cache_key(str(arg)) for arg in args])
+
+
+def get_update_times(weather_data, user_timezone, transl):
+    """
+    Get the update times in local and user timezones.
+
+    Parameters:
+    weather_data (dict): Dictionary containing weather data.
+    user_timezone (timezone): User's timezone object.
+    transl (dict): Dictionary containing translations for error messages.
+
+    Returns:
+    tuple: A tuple containing formatted local update time and user update time.
+    """
+    try:
+        # Define local timezone
+        local_timezone = pytz.timezone(weather_data['tz_id'])
+
+        # Get local update time and convert to datetime
+        local_update_time_str = weather_data['current']['update_time']
+        local_update_time = datetime.strptime(
+            local_update_time_str, '%Y-%m-%d %H:%M'
+        )
+
+        # Assign timezone to local update time
+        local_update_time = local_timezone.localize(local_update_time)
+
+        # Convert local update time to user's timezone
+        user_update_time = local_update_time.astimezone(user_timezone)
+
+        formatted_local_update_time = local_update_time.strftime('%H:%M')
+        formatted_user_update_time = user_update_time.strftime('%H:%M')
+
+        return formatted_local_update_time, formatted_user_update_time
+    except Exception as e:
+        print(f"Error getting update times: {e}")
+        return 'N/A', 'N/A'
