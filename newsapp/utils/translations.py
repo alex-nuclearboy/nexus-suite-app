@@ -59,6 +59,7 @@ translations = {
         'visibility': 'Visibility',
         'uv_index': 'UV Index',
         'update_time': 'Last updated',
+        'localtime': 'Local Time',
         'moon_phase': 'Moon Phase',
         'new_moon': 'New Moon',
         'waxing_crescent': 'Waxing Crescent',
@@ -100,9 +101,17 @@ translations = {
         'currency_uah': 'Ukrainian Hryvnia',
         "unable_to_retrieve_weather": "Unable to retrieve weather data.",
         'city_not_found': "City '%(city)s' not found.",
+        'city_name_not_found': "City '%(name)s' not found.",
+        'country_name_not_found': "Country '%(name)s' not found.",
+        'region_name_not_found': "Region '%(name)s' not found.",
+        'could_not_geocode': 'Could not geocode city name: %(city)s',
+        'incomplete_weather_data': 'Incomplete weather data',
+        'invalid_JSON_response': 'Invalid JSON response from Weather API',
         'invalid_key': 'Invalid API key',
         'unknown_error': 'Unknown error',
+        'unknown': 'Unknown',
         'error_fetching_news': "Unable to fetch news: %(error)s",
+        'geocoding_service_error': 'Error contacting geocoding service: %(error)s'
     },
     'uk': {
         "title": "NexusSuite",
@@ -202,9 +211,18 @@ translations = {
         'currency_uah': 'українська гривня',
         "unable_to_retrieve_weather": "Неможливо отримати дані про погоду.",
         'city_not_found': "Місто '%(city)s' не знайдено.",
+        'city_name_not_found': "Місто '%(name)s' не знайдено.",
+        'country_name_not_found': "Країну '%(name)s' не знайдено.",
+        'region_name_not_found': "Регіон '%(name)s' не знайдено.",
+        'could_not_geocode': 'Не вдалося геокодувати назву міста: %(city)s',
+        'incomplete_weather_data': 'Неповні дані про погоду',
+        'invalid_JSON_response': 'Неправильна відповідь JSON від Weather API',
         'update_time': 'Останнє оновлення',
+        'localtime': 'Місцевий час',
         'invalid_key': 'Недійсний API ключ',
         'unknown_error': 'Невідома помилка',
-        'error_fetching_news': "Не вдалося отримати новини: %(error)s"
+        'unknown': 'Невідомо',
+        'error_fetching_news': "Не вдалося отримати новини: %(error)s",
+        'geocoding_service_error': 'Помилка зв’язку з сервісом геокодування: %(error)s'
     }
 }
