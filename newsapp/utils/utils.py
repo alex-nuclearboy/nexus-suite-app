@@ -193,23 +193,29 @@ def get_update_times(weather_data, user_timezone, transl):
     tuple: A tuple containing formatted local update time and user update time.
     """
     try:
-        # Define local timezone
-        local_timezone = pytz.timezone(weather_data['tz_id'])
+        if (
+            weather_data and 'current' in weather_data
+            and 'update_time' in weather_data['current']
+        ):
+            # Define local timezone
+            local_timezone = pytz.timezone(weather_data['tz_id'])
 
-        # Get local update time and convert to datetime
-        local_update_time_str = weather_data['current']['update_time']
-        local_update_time = datetime.strptime(
-            local_update_time_str, '%Y-%m-%d %H:%M'
-        )
+            # Get local update time and convert to datetime
+            local_update_time_str = weather_data['current']['update_time']
+            local_update_time = datetime.strptime(
+                local_update_time_str, '%Y-%m-%d %H:%M'
+            )
 
-        # Assign timezone to local update time
-        local_update_time = local_timezone.localize(local_update_time)
+            # Assign timezone to local update time
+            local_update_time = local_timezone.localize(local_update_time)
 
-        # Convert local update time to user's timezone
-        user_update_time = local_update_time.astimezone(user_timezone)
+            # Convert local update time to user's timezone
+            user_update_time = local_update_time.astimezone(user_timezone)
 
-        formatted_local_update_time = local_update_time.strftime('%H:%M')
-        formatted_user_update_time = user_update_time.strftime('%H:%M')
+            formatted_local_update_time = local_update_time.strftime('%H:%M')
+            formatted_user_update_time = user_update_time.strftime('%H:%M')
+        else:
+            raise ValueError("Missing required weather data for update times")
 
         return formatted_local_update_time, formatted_user_update_time
     except Exception as e:
