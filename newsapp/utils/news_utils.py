@@ -1,21 +1,12 @@
 from django.core.cache import cache
 
 from datetime import datetime
-import requests
+from asgiref.sync import sync_to_async
+import aiohttp
 import re
 import os
 
-# Define categories in different languages
-CATEGORIES = {
-    'en': [
-        'general', 'business', 'entertainment', 'health',
-        'science', 'sports', 'technology',
-    ],
-    'uk': [
-        'загальні', 'бізнес',  'розваги', 'здоров\'я',
-        'наука', 'спорт', 'технології',
-    ]
-}
+from .exceptions import handle_news_api_error
 
 # Map categories to their identifiers
 CATEGORY_MAP = {
@@ -31,7 +22,7 @@ CATEGORY_MAP = {
 NEWS_API_KEY = os.getenv('NEWS_API_KEY')
 
 
-def fetch_news_by_category(category, country, transl):
+async def fetch_news_by_category(category, country, transl):
     """
     Fetches news data from NewsAPI.
 
@@ -53,7 +44,7 @@ def fetch_news_by_category(category, country, transl):
     ValueError: If there's an error fetching the news data.
     """
     cache_key = f'news_{category}_{country}'
-    cached_news = cache.get(cache_key)
+    cached_news = await sync_to_async(cache.get)(cache_key)
 
     if cached_news:
         return cached_news
@@ -62,13 +53,12 @@ def fetch_news_by_category(category, country, transl):
         f'https://newsapi.org/v2/top-headlines?country={country}'
         f'&category={category}&apiKey={NEWS_API_KEY}'
     )
-    response = requests.get(url)
-    data = response.json()
-    if response.status_code != 200:
-        error_msg = transl['error_fetching_news'].format(
-            error=data.get('message', 'Unknown error')
-        )
-        raise ValueError(error_msg)
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status != 200:
+                await handle_news_api_error(response)
+            data = await response.json()
 
     articles = []
     for article in data['articles']:
@@ -92,6 +82,6 @@ def fetch_news_by_category(category, country, transl):
         })
 
     # Cache the news data for 1 day
-    cache.set(cache_key, articles, timeout=60*60*24)
+    await sync_to_async(cache.set)(cache_key, articles, timeout=60*60*24)
 
     return articles
