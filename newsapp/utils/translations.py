@@ -104,14 +104,18 @@ translations = {
         'city_name_not_found': "City '%(name)s' not found.",
         'country_name_not_found': "Country '%(name)s' not found.",
         'region_name_not_found': "Region '%(name)s' not found.",
-        'could_not_geocode': 'Could not geocode city name: %(city)s',
+        'could_not_geocode': 'Could not geocode city %(city)s',
         'incomplete_weather_data': 'Incomplete weather data',
         'invalid_JSON_response': 'Invalid JSON response from Weather API',
         'invalid_key': 'Invalid API key',
         'unknown_error': 'Unknown error',
         'unknown': 'Unknown',
         'error_fetching_news': "Unable to fetch news: %(error)s",
-        'geocoding_service_error': 'Error contacting geocoding service: %(error)s'
+        'unable_to_fetch_news': "Unable to fetch news at the moment. Please try again later.",
+        'geocoding_service_error': 'Error contacting geocoding service: %(error)s',
+        'unable_to_fetch_exchange_rates': 'Unable to fetch exchange rates at this time. Please try again later.',
+        'conversion_rate_not_found': 'Conversion rate not found.',
+        'conversion_division_error': 'Error in conversion: Division by zero.',
     },
     'uk': {
         "title": "NexusSuite",
@@ -214,7 +218,7 @@ translations = {
         'city_name_not_found': "Місто '%(name)s' не знайдено.",
         'country_name_not_found': "Країну '%(name)s' не знайдено.",
         'region_name_not_found': "Регіон '%(name)s' не знайдено.",
-        'could_not_geocode': 'Не вдалося геокодувати назву міста: %(city)s',
+        'could_not_geocode': 'Не вдалося геокодувати місто %(city)s',
         'incomplete_weather_data': 'Неповні дані про погоду',
         'invalid_JSON_response': 'Неправильна відповідь JSON від Weather API',
         'update_time': 'Останнє оновлення',
@@ -223,6 +227,10 @@ translations = {
         'unknown_error': 'Невідома помилка',
         'unknown': 'Невідомо',
         'error_fetching_news': "Не вдалося отримати новини: %(error)s",
-        'geocoding_service_error': 'Помилка зв’язку з сервісом геокодування: %(error)s'
+        'unable_to_fetch_news': "Наразі оновити новини не вдалось. Будь ласка, спробуйте пізніше.",
+        'geocoding_service_error': 'Помилка зв’язку з сервісом геокодування: %(error)s',
+        'unable_to_fetch_exchange_rates': 'Наразі не вдається отримати курси валют. Будь ласка, спробуйте пізніше.',
+        'conversion_rate_not_found': 'Не знайдено курс конвертації.',
+        'conversion_division_error': 'Помилка конвертації: ділення на нуль.',
     }
 }
