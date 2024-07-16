@@ -1,7 +1,10 @@
 from django.core.cache import cache
 
 from datetime import datetime
-import requests
+from asgiref.sync import sync_to_async
+from aiohttp import ClientSession
+
+from .exceptions import handle_exchange_api_error
 
 # Currency name mappings for different languages
 CURRENCY_MAP = {
@@ -28,7 +31,7 @@ CURRENCY_MAP = {
 API_URL = 'https://api.privatbank.ua/p24api/exchange_rates?json&date='
 
 
-def fetch_exchange_rates(filter_currencies=None):
+async def fetch_exchange_rates(filter_currencies=None):
     """
     Fetches and caches exchange rates data from PrivatBank API.
 
@@ -44,27 +47,34 @@ def fetch_exchange_rates(filter_currencies=None):
     list: A list of exchange rates for the required currencies.
     """
     cache_key = 'exchange_rates'
-    exchange_rates = cache.get(cache_key)
+    exchange_rates = await sync_to_async(cache.get)(cache_key)
 
     if not exchange_rates:
         today = datetime.today().strftime('%d.%m.%Y')
         url = f'{API_URL}{today}'
-        response = requests.get(url)
-        data = response.json()
 
-        exchange_rates = [
-            rate for rate in data['exchangeRate']
-            if 'currency' in rate and rate['currency'] != 'UAH'
-        ]
+        async with ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status != 200:
+                    await handle_exchange_api_error(response)
 
-        # Sort exchange rates by custom order
-        custom_order = {
-            'USD': 1, 'EUR': 2, 'GBP': 3, 'CHF': 4, 'PLN': 5, 'CZK': 6
-        }
-        exchange_rates.sort(key=lambda x: custom_order.get(x['currency'], 999))
+                data = await response.json()
 
-        # Cache the exchange rates for 10 minutes (600 seconds)
-        cache.set(cache_key, exchange_rates, 600)
+                exchange_rates = [
+                    rate for rate in data['exchangeRate']
+                    if 'currency' in rate and rate['currency'] != 'UAH'
+                ]
+
+                # Sort exchange rates by custom order
+                custom_order = {
+                    'USD': 1, 'EUR': 2, 'GBP': 3, 'CHF': 4, 'PLN': 5, 'CZK': 6
+                }
+                exchange_rates.sort(
+                    key=lambda x: custom_order.get(x['currency'], 999)
+                )
+
+                # Cache the exchange rates for 10 minutes (600 seconds)
+                await sync_to_async(cache.set)(cache_key, exchange_rates, 600)
 
     # Apply filtering if filter_currencies is provided
     if filter_currencies:
@@ -76,7 +86,9 @@ def fetch_exchange_rates(filter_currencies=None):
     return exchange_rates
 
 
-def convert_currency(amount, from_currency, to_currency, exchange_rates):
+async def convert_currency(
+        amount, from_currency, to_currency, exchange_rates, transl
+):
     """
     Converts an amount from one currency to another using exchange rates.
 
@@ -114,8 +126,16 @@ def convert_currency(amount, from_currency, to_currency, exchange_rates):
             )
 
     if from_currency_buy_rate is None or to_currency_sale_rate is None:
-        return None
+        error_message = transl['conversion_rate_not_found']
+        return None, error_message
 
-    amount_in_uah = amount * from_currency_buy_rate
-    converted_amount = amount_in_uah / to_currency_sale_rate
-    return round(converted_amount, 2)
+    try:
+        amount_in_uah = amount * from_currency_buy_rate
+        converted_amount = amount_in_uah / to_currency_sale_rate
+        return round(converted_amount, 2), None
+    except ZeroDivisionError:
+        error_message = transl['conversion_division_error']
+        return None, error_message
+    except Exception as e:
+        error_message = str(e)
+        return None, error_message
