@@ -4,25 +4,25 @@ from . import views
 app_name = "newsapp"
 
 urlpatterns = [
-    path('', views.main, name='index'),
+    path('', views.MainView.as_view(), name='index'),
     path(
         'news/<str:category>/',
-        views.news_by_category,
+        views.NewsView.as_view(),
         name='news_by_category'
     ),
     path(
         'exchange-rates/',
-        views.exchange_rates_page,
+        views.ExchangeRatesView.as_view(),
         name='exchange_rates'
     ),
     path(
         'convert-currency/',
-        views.convert_currency_view,
+        views.ConvertCurrencyView.as_view(),
         name='convert_currency'
     ),
     path(
         'weather/',
-        views.weather_page,
+        views.WeatherView.as_view(),
         name='weather'
     ),
     path(
