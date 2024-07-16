@@ -1,13 +1,16 @@
+from django.views import View
+from django.core.cache import cache
 from django.shortcuts import render, redirect
 from django.utils import timezone
 
-import aiohttp
 from asgiref.sync import sync_to_async
+import logging
 import pytz
 
 from .utils.translations import translations
 from .utils.utils import (
-    get_translated_day_and_month, get_language, set_timezone, get_update_times
+    get_translated_day_and_month, get_language,
+    set_timezone, get_update_times
 )
 from .utils.location_utils import (
     COUNTRIES, COUNTRIES_UA, COUNTRIES_GENITIVE_UA
@@ -16,363 +19,363 @@ from .utils.weather_utils import fetch_weather_data
 from .utils.exchanger_utils import (
     CURRENCY_MAP, fetch_exchange_rates, convert_currency
 )
-from .utils.news_utils import CATEGORIES, CATEGORY_MAP, fetch_news_by_category
+from .utils.news_utils import CATEGORY_MAP, fetch_news_by_category
 from .utils.location_utils import process_city_info
-from .utils.exceptions import (
-    CityNotFoundError, InvalidAPIKeyError,
-    UnableToRetrieveWeatherError, GeocodingServiceError
-)
+from .utils.exceptions import (APIError, UnableToRetrieveWeatherError)
+
+logger = logging.getLogger(__name__)
 
 
-async def main(request):
-    """
-    Main view function to display the weather, exchange rates, and news.
+class BaseView(View):
+    async def get_common_context(self, request):
+        language = await sync_to_async(get_language)(request)
+        transl = translations.get(language, translations['en'])
 
-    This function:
-    - Displays the current date and time in the user's timezone.
-    - Retrieves the language from the session.
-    - Loads the translations based on the language.
-    - Retrieves news data based on the selected country.
-    - Fetches the weather and exchange rates data.
-    - Handles errors and displays appropriate messages.
+        await sync_to_async(set_timezone)(request)
 
-    Parameters:
-    request (HttpRequest): The request object containing GET parameters
-                           for 'country', and 'page'.
-
-    Returns:
-    HttpResponse: The rendered template with the context data.
-    """
-    language = await sync_to_async(get_language)(request)
-    trans = translations.get(language, translations['en'])
-
-    await sync_to_async(set_timezone)(request)
-
-    timezone_str = (
-        await sync_to_async(request.session.get)('django_timezone', 'UTC')
-    )
-    user_timezone = pytz.timezone(timezone_str)
-    now = timezone.now().astimezone(user_timezone)
-
-    translated_day, translated_month = (
-        await sync_to_async(get_translated_day_and_month)(now,
-                                                          language,
-                                                          'full')
-    )
-    current_time = now.strftime('%H:%M')
-    current_date = f"{translated_day}, {now.day} {translated_month} {now.year}"
-
-    error_message = None
-    weather_error_message = None
-    default_city = 'Kyiv' if language == 'en' else 'Київ'
-    city = request.GET.get('city', default_city)
-
-    country = request.GET.get(
-        'country', await sync_to_async(request.session.get)(
-            'selected_country', 'us' if language == 'en' else 'ua'
+        timezone_str = (
+            await sync_to_async(request.session.get)('django_timezone', 'UTC')
         )
-    )
+        user_timezone = pytz.timezone(timezone_str)
+        now = timezone.now().astimezone(user_timezone)
 
-    displayed_country_name = (
-        COUNTRIES_UA.get(country, 'Unknown') if language == 'uk'
-        else COUNTRIES.get(country, 'Unknown')
-    )
-    genitive_country_name = (
-        COUNTRIES_GENITIVE_UA.get(country, 'Unknown') if language == 'uk'
-        else COUNTRIES.get(country, 'Unknown')
-    )
-
-    try:
-        weather_data = await fetch_weather_data(
-            city, trans, language, data_type='current'
-        )
-    except CityNotFoundError as e:
-        weather_error_message = str(e)
-        weather_data = None
-    except ValueError as ve:
-        weather_error_message = str(ve)
-        weather_data = None
-    except aiohttp.ClientError as e:
-        weather_error_message = (
-            trans['unable_to_retrieve_weather'] % {'error': str(e)}
-        )
-        weather_data = None
-
-    exchange_rates = await sync_to_async(fetch_exchange_rates)(
-        filter_currencies={'USD', 'EUR', 'PLN'}
-    )
-
-    news_data = {}
-    for category in CATEGORY_MAP.keys():
-        try:
-            articles = (
-                await sync_to_async(fetch_news_by_category)(category,
-                                                            country,
-                                                            trans)
+        translated_day, translated_month = (
+            await sync_to_async(get_translated_day_and_month)(
+                now, language, 'full'
             )
-            news_data[category] = articles
-        except ValueError:
-            news_data[category] = []
-
-    # Store news data in session
-    await sync_to_async(request.session.__setitem__)('news_data', news_data)
-
-    limited_news = {
-        category: articles[:5] for category, articles in news_data.items()
-    }
-
-    formatted_local_update_time, formatted_user_update_time = \
-        get_update_times(weather_data, user_timezone, trans)
-
-    context = {
-        'translations': trans,
-        'current_date': current_date,
-        'current_time': current_time,
-        'categories': CATEGORIES[language],
-        'countries': COUNTRIES if language == 'en' else COUNTRIES_UA,
-        'weather_data': weather_data,
-        'local_update_time': formatted_local_update_time,
-        'user_update_time': formatted_user_update_time,
-        'exchange_rates': exchange_rates,
-        'limited_news': limited_news,
-        'selected_city': city,
-        'selected_country': country,
-        'selected_country_name': displayed_country_name,
-        'genitive_country_name': genitive_country_name,
-        'error_message': error_message,
-        'weather_error_message': weather_error_message,
-        'category_translations': {k: trans[k] for k in CATEGORY_MAP.keys()},
-    }
-
-    return render(request, 'newsapp/index.html', context)
-
-
-async def weather_page(request):
-    """
-    View function to display detailed weather information for a specific city.
-
-    This function:
-    - Retrieves the language from the request or session.
-    - Loads the translations based on the language.
-    - Retrieves the user's timezone.
-    - Fetches detailed weather data for the specified city.
-    - Processes city information to display the correct names and texts.
-    - Handles errors and displays appropriate messages.
-
-    Parameters:
-    request (HttpRequest): The request object containing GET parameters
-                           for 'city' and optionally 'lang'.
-
-    Returns:
-    HttpResponse: The rendered template with the context data.
-    """
-    language = request.GET.get(
-        'lang', await sync_to_async(request.session.get)('language', 'en')
-    )
-    trans = translations.get(language, translations['en'])
-
-    timezone_str = (
-        await sync_to_async(request.session.get)('django_timezone', 'UTC')
-    )
-    user_timezone = pytz.timezone(timezone_str)
-    now = timezone.now().astimezone(user_timezone)
-
-    translated_day, translated_month = (
-        get_translated_day_and_month(now, language, 'full')
-    )
-    current_time = now.strftime('%H:%M')
-    current_date = f"{translated_day}, {now.day} {translated_month} {now.year}"
-
-    error_message = None
-    default_city = 'Kyiv' if language == 'en' else 'Київ'
-    city = request.GET.get('city', default_city)
-
-    try:
-        weather_data = await fetch_weather_data(
-            city, trans, language, data_type='both'
         )
-        city, region, country_name, weather_in_text = await process_city_info(
-            city,
-            weather_data['geo_city'],
-            weather_data['country_code'],
-            weather_data['geo_country'],
-            weather_data['geo_region'],
-            weather_data['api_country'],
-            weather_data['api_region'],
-            language,
-            trans
+        current_time = now.strftime('%H:%M')
+        current_date = (
+            f"{translated_day}, {now.day} {translated_month} {now.year}"
         )
+
+        return {
+            'language': language,
+            'translations': transl,
+            'current_date': current_date,
+            'current_time': current_time,
+            'user_timezone': user_timezone,
+        }
+
+
+class MainView(BaseView):
+    async def get(self, request):
+        context = await self.get_common_context(request)
+        language = context['language']
+        transl = context['translations']
+        user_timezone = context['user_timezone']
+
+        weather_error_message = None
+        exchange_rate_error_message = None
+        default_city = 'Kyiv' if language == 'en' else 'Київ'
+        city = request.GET.get('city', default_city)
+
+        country = request.GET.get(
+            'country', await sync_to_async(request.session.get)(
+                'selected_country', 'us' if language == 'en' else 'ua'
+            )
+        )
+
+        displayed_country_name = (
+            COUNTRIES_UA.get(country, 'Unknown') if language == 'uk'
+            else COUNTRIES.get(country, 'Unknown')
+        )
+        genitive_country_name = (
+            COUNTRIES_GENITIVE_UA.get(country, 'Unknown') if language == 'uk'
+            else COUNTRIES.get(country, 'Unknown')
+        )
+
+        try:
+            weather_data = await fetch_weather_data(
+                city, transl, language, data_type='current'
+            )
+        except UnableToRetrieveWeatherError as e:
+            weather_error_message = (
+                transl['could_not_geocode'] % {'city': city}
+            )
+            logger.error(f"Weather retrieval error for {city}: {str(e)}")
+            weather_data = None
+
+        try:
+            exchange_rates = await fetch_exchange_rates(
+                filter_currencies={'USD', 'EUR', 'PLN'}
+            )
+        except APIError as e:
+            logger.error(f"Error fetching exchange rates: {str(e)}")
+            exchange_rates = []
+            exchange_rate_error_message = transl[
+                'unable_to_fetch_exchange_rates'
+            ]
+
+        news_data = {}
+        try:
+            for category in CATEGORY_MAP.keys():
+                try:
+                    articles = (
+                        await fetch_news_by_category(category, country, transl)
+                    )
+                    news_data[category] = articles
+                except APIError:
+                    articles = []
+                    news_data[category] = articles
+
+            await sync_to_async(request.session.__setitem__)(
+                'news_data', news_data
+            )
+
+            limited_news = {
+                category: articles[:5] for category, articles
+                in news_data.items()
+            }
+        except APIError as e:
+            logger.error(f"Error fetching news: {str(e)}")
+            limited_news = {}
 
         formatted_local_update_time, formatted_user_update_time = \
-            get_update_times(weather_data, user_timezone, trans)
+            get_update_times(weather_data, user_timezone, transl)
 
-    except CityNotFoundError as e:
-        weather_data = None
-        error_message = str(e)
-        country_name = None
-        region = None
-        weather_in_text = trans['weather_in']
-        formatted_local_update_time = 'N/A'
-        formatted_user_update_time = 'N/A'
-    except (
-        InvalidAPIKeyError, UnableToRetrieveWeatherError, GeocodingServiceError
-    ) as e:
-        weather_data = None
-        error_message = str(e)
-        country_name = None
-        region = None
-        weather_in_text = trans['weather_in']
-        formatted_local_update_time = 'N/A'
-        formatted_user_update_time = 'N/A'
+        context.update({
+            'weather_error_message': weather_error_message,
+            'weather_data': weather_data,
+            'exchange_rates': exchange_rates,
+            'limited_news': limited_news,
+            'selected_city': city,
+            'selected_country': country,
+            'selected_country_name': displayed_country_name,
+            'genitive_country_name': genitive_country_name,
+            'category_translations': {
+                k: transl[k] for k in CATEGORY_MAP.keys()
+            },
+            'local_update_time': formatted_local_update_time,
+            'user_update_time': formatted_user_update_time,
+            'countries': COUNTRIES if language == 'en' else COUNTRIES_UA,
+            'exchange_rate_error_message': exchange_rate_error_message,
+        })
 
-    context = {
-        'translations': trans,
-        'current_date': current_date,
-        'current_time': current_time,
-        'city': city,
-        'weather_data': weather_data,
-        'error_message': error_message,
-        'language': language,
-        'country_name': country_name,
-        'region': region,
-        'weather_in_text': weather_in_text,
-        'local_update_time': formatted_local_update_time,
-        'user_update_time': formatted_user_update_time,
-    }
-
-    await sync_to_async(request.session.__setitem__)('language', language)
-
-    return render(request, 'newsapp/weather.html', context)
+        return render(request, 'newsapp/index.html', context)
 
 
-def exchange_rates_page(request):
-    language = get_language(request)
-    trans = translations.get(language, translations['en'])
+class WeatherView(BaseView):
+    async def get(self, request):
+        context = await self.get_common_context(request)
+        language = context['language']
+        transl = context['translations']
+        user_timezone = context['user_timezone']
 
-    timezone_str = request.session.get('django_timezone', 'UTC')
-    user_timezone = pytz.timezone(timezone_str)
-    now = timezone.now().astimezone(user_timezone)
+        error_message = None
+        default_city = 'Kyiv' if language == 'en' else 'Київ'
+        city = request.GET.get('city', default_city)
 
-    translated_day, translated_month = get_translated_day_and_month(now,
-                                                                    language,
-                                                                    'full')
-    current_time = now.strftime('%H:%M')
-    current_date = f"{translated_day}, {now.day} {translated_month} {now.year}"
+        try:
+            weather_data = await fetch_weather_data(
+                city, transl, language, data_type='both'
+            )
+            city, region, country_name, weather_in_text = (
+                await process_city_info(
+                    city,
+                    weather_data['geo_city'],
+                    weather_data['country_code'],
+                    weather_data['geo_country'],
+                    weather_data['geo_region'],
+                    weather_data['api_country'],
+                    weather_data['api_region'],
+                    language,
+                    transl
+                )
+            )
 
-    # Filtered currencies
-    filter_currencies = {'USD', 'EUR', 'GBP', 'PLN', 'CHF', 'CZK'}
-    exchange_rates = fetch_exchange_rates(filter_currencies=filter_currencies)
+            formatted_local_update_time, formatted_user_update_time = \
+                get_update_times(weather_data, user_timezone, transl)
 
-    context = {
-        'translations': trans,
-        'current_date': current_date,
-        'current_time': current_time,
-        'exchange_rates': exchange_rates,
-        'currency_names': CURRENCY_MAP[language],
-        'converted_amount': request.session.get('converted_amount', '-'),
-        'amount': request.session.get('amount', 0),
-        'from_currency': request.session.get('from_currency', 'USD'),
-        'to_currency': request.session.get('to_currency', 'EUR'),
-    }
+        except UnableToRetrieveWeatherError:
+            error_message = transl['could_not_geocode'] % {'city': city}
+            logger.error(f"Weather retrieval error: City '{city}' not found")
+            weather_data = None
+            country_name = None
+            region = None
+            weather_in_text = transl['weather_in']
+            formatted_local_update_time = 'N/A'
+            formatted_user_update_time = 'N/A'
 
-    return render(request, 'newsapp/exchange_rates.html', context)
+        context.update({
+            'error_message': error_message,
+            'weather_data': weather_data,
+            'city': city,
+            'country_name': country_name,
+            'region': region,
+            'weather_in_text': weather_in_text,
+            'local_update_time': formatted_local_update_time,
+            'user_update_time': formatted_user_update_time,
+        })
+
+        await sync_to_async(request.session.__setitem__)('language', language)
+
+        return render(request, 'newsapp/weather.html', context)
 
 
-def convert_currency_view(request):
-    if request.method == 'POST':
-        amount = float(request.POST.get('amount'))
-        from_currency = request.POST.get('from_currency')
-        to_currency = request.POST.get('to_currency')
-        exchange_rates = fetch_exchange_rates(
-            filter_currencies={'USD', 'EUR', 'GBP', 'CHF', 'PLN', 'CZK', 'UAH'}
+class ExchangeRatesView(BaseView):
+    async def get(self, request):
+        context = await self.get_common_context(request)
+        language = context['language']
+        transl = context['translations']
+
+        filter_currencies = {'USD', 'EUR', 'GBP', 'PLN', 'CHF', 'CZK'}
+
+        try:
+            exchange_rates = await fetch_exchange_rates(
+                filter_currencies=filter_currencies
+            )
+            error_message = None
+        except APIError as e:
+            logger.error(f"Error fetching exchange rates: {str(e)}")
+            exchange_rates = []
+            error_message = transl['unable_to_fetch_exchange_rates']
+
+        converted_amount = request.session.pop('converted_amount', '-')
+        amount = request.session.pop('amount', 0)
+        from_currency = request.session.pop('from_currency', 'USD')
+        to_currency = request.session.pop('to_currency', 'UAH')
+        conversion_error_message = request.session.pop(
+            'conversion_error_message', None
         )
 
-        conversion_result = convert_currency(
-            amount, from_currency, to_currency, exchange_rates
-        )
+        context.update({
+            'exchange_rates': exchange_rates,
+            'currency_names': CURRENCY_MAP[language],
+            'amount': amount,
+            'converted_amount': converted_amount,
+            'from_currency': from_currency,
+            'to_currency': to_currency,
+            'error_message': error_message,
+            'conversion_error_message': conversion_error_message,
+        })
 
-        # Save conversion result to session
-        request.session['converted_amount'] = conversion_result
-        request.session['amount'] = amount
-        request.session['from_currency'] = from_currency
-        request.session['to_currency'] = to_currency
+        return render(request, 'newsapp/exchange_rates.html', context)
 
-        # Redirect to the same exchange rates page
+
+class ConvertCurrencyView(BaseView):
+    async def post(self, request):
+        context = await self.get_common_context(request)
+        transl = context['translations']
+        if request.method == 'POST':
+            amount = float(request.POST.get('amount'))
+            from_currency = request.POST.get('from_currency')
+            to_currency = request.POST.get('to_currency')
+            exchange_rates = await fetch_exchange_rates(
+                filter_currencies={
+                    'USD', 'EUR', 'GBP', 'CHF', 'PLN', 'CZK', 'UAH'
+                }
+            )
+
+            conversion_result, error_message = await convert_currency(
+                amount, from_currency, to_currency, exchange_rates, transl
+            )
+
+            if error_message:
+                await sync_to_async(request.session.__setitem__)(
+                    'conversion_error_message', error_message
+                )
+                await sync_to_async(request.session.__setitem__)(
+                    'amount', amount
+                )
+                await sync_to_async(request.session.__setitem__)(
+                    'from_currency', from_currency
+                )
+                await sync_to_async(request.session.__setitem__)(
+                    'to_currency', to_currency
+                )
+                return redirect('newsapp:exchange_rates')
+
+            # Save conversion result to session
+            await sync_to_async(request.session.__setitem__)(
+                'converted_amount', conversion_result
+            )
+            await sync_to_async(request.session.__setitem__)(
+                'amount', amount
+            )
+            await sync_to_async(request.session.__setitem__)(
+                'from_currency', from_currency
+            )
+            await sync_to_async(request.session.__setitem__)(
+                'to_currency', to_currency
+            )
+
         return redirect('newsapp:exchange_rates')
 
-    return redirect('newsapp:exchange_rates')
 
+class NewsView(BaseView):
+    async def get(self, request, category):
+        context = await self.get_common_context(request)
+        language = context['language']
+        transl = context['translations']
 
-def news_by_category(request, category):
-    language = get_language(request)
-    trans = translations.get(language, translations['en'])
+        # Get the country from the request or session
+        country = request.GET.get(
+            'country', await sync_to_async(request.session.get)(
+                'selected_country', 'us' if language == 'en' else 'ua'
+            )
+        )
 
-    timezone_str = request.session.get('django_timezone', 'UTC')
-    user_timezone = pytz.timezone(timezone_str)
-    now = timezone.now().astimezone(user_timezone)
+        # Update the session with the selected country
+        await sync_to_async(request.session.__setitem__)(
+            'selected_country', country
+        )
 
-    translated_day, translated_month = get_translated_day_and_month(now,
-                                                                    language,
-                                                                    'full')
-    current_time = now.strftime('%H:%M')
-    current_date = f"{translated_day}, {now.day} {translated_month} {now.year}"
+        displayed_country_name = (
+            COUNTRIES_UA.get(country, 'Unknown') if language == 'uk'
+            else COUNTRIES.get(country, 'Unknown')
+        )
+        genitive_country_name = (
+            COUNTRIES_GENITIVE_UA.get(country, 'Unknown') if language == 'uk'
+            else COUNTRIES.get(country, 'Unknown')
+        )
 
-    # Get the country from the request or session
-    country = request.GET.get(
-        'country', request.session.get('selected_country', 'us'
-                                       if language == 'en' else 'ua')
-    )
+        # Clear session news data for a country
+        news_session_key = f'news_data_{country}'
+        await sync_to_async(request.session.pop)(news_session_key, None)
 
-    # Update the session with the selected country
-    request.session['selected_country'] = country
-
-    displayed_country_name = (
-        COUNTRIES_UA.get(country, 'Unknown') if language == 'uk'
-        else COUNTRIES.get(country, 'Unknown')
-    )
-    genitive_country_name = (
-        COUNTRIES_GENITIVE_UA.get(country, 'Unknown') if language == 'uk'
-        else COUNTRIES.get(country, 'Unknown')
-    )
-
-    # Check if there are news in the session for the selected country,
-    # if not, download the news
-    news_data = request.session.get(f'news_data_{country}', {})
-    if not news_data:
-        for cat in CATEGORY_MAP.keys():
+        # Download news
+        news_data = await sync_to_async(cache.get)(news_session_key)
+        if not news_data:
+            news_data = {}
             try:
-                articles = fetch_news_by_category(cat, country, trans)
-                news_data[cat] = articles
-            except ValueError:
-                news_data[cat] = []
-        request.session[f'news_data_{country}'] = news_data
+                for cat in CATEGORY_MAP.keys():
+                    articles = await fetch_news_by_category(
+                        cat, country, transl
+                    )
+                    news_data[cat] = articles
+                await sync_to_async(request.session.__setitem__)(
+                    news_session_key, news_data
+                )
+            except APIError:
+                news_data = {cat: [] for cat in CATEGORY_MAP.keys()}
+                context['error_message'] = transl['unable_to_fetch_news']
 
-    articles = news_data.get(category, [])
+        articles = news_data.get(category, [])
 
-    category_titles = {
-        'general': trans['general_title'],
-        'business': trans['business_title'],
-        'entertainment': trans['entertainment_title'],
-        'health': trans['health_title'],
-        'science': trans['science_title'],
-        'sports': trans['sports_title'],
-        'technology': trans['technology_title']
-    }
-    category_title = category_titles.get(category, trans['default_title'])
+        category_titles = {
+            'general': transl['general_title'],
+            'business': transl['business_title'],
+            'entertainment': transl['entertainment_title'],
+            'health': transl['health_title'],
+            'science': transl['science_title'],
+            'sports': transl['sports_title'],
+            'technology': transl['technology_title']
+        }
+        category_title = category_titles.get(category, transl['default_title'])
 
-    context = {
-        'translations': trans,
-        'selected_country': country,
-        'selected_country_name': displayed_country_name,
-        'genitive_country_name': genitive_country_name,
-        'countries': COUNTRIES if language == 'en' else COUNTRIES_UA,
-        'categories': list(CATEGORY_MAP.keys()),
-        'selected_category': category,
-        'category_translations': {k: trans[k] for k in CATEGORY_MAP.keys()},
-        'articles': articles,
-        'current_time': current_time,
-        'current_date': current_date,
-        'category_title': category_title
-    }
+        context.update({
+            'selected_country': country,
+            'selected_country_name': displayed_country_name,
+            'genitive_country_name': genitive_country_name,
+            'countries': COUNTRIES if language == 'en' else COUNTRIES_UA,
+            'categories': list(CATEGORY_MAP.keys()),
+            'selected_category': category,
+            'category_translations': {
+                k: transl[k] for k in CATEGORY_MAP.keys()
+            },
+            'articles': articles,
+            'category_title': category_title
+        })
 
-    return render(request, 'newsapp/category_news.html', context)
+        return render(request, 'newsapp/category_news.html', context)
