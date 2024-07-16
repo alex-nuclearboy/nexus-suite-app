@@ -1,5 +1,7 @@
 from django.core.cache import cache
+
 from asgiref.sync import sync_to_async
+import logging
 import aiohttp
 import os
 
@@ -7,9 +9,12 @@ from .location_utils import get_country_name_by_code, geocode_city
 from .utils import generate_cache_key
 
 from .exceptions import (
-    CityNotFoundError, GeocodingServiceError, UnableToRetrieveWeatherError,
-    InvalidAPIKeyError, InvalidJSONResponseError, IncompleteWeatherDataError
+    handle_weather_api_error,
+    GeocodingError, UnableToRetrieveWeatherError,
+    InvalidJSONResponseError, IncompleteWeatherDataError
 )
+
+logger = logging.getLogger(__name__)
 
 WEATHER_API_KEY = os.getenv('WEATHER_API_KEY')
 
@@ -47,13 +52,8 @@ async def fetch_weather_data(city, transl, language='en', data_type='both'):
 
     try:
         geo_data = await geocode_city(city, transl=transl)
-    except CityNotFoundError as e:
-        raise CityNotFoundError(str(e))
-    except GeocodingServiceError as e:
-        print(f"Geocoding error: {str(e)}")
-        raise UnableToRetrieveWeatherError(
-            transl['unable_to_retrieve_weather'] % {'error': str(e)}
-        )
+    except GeocodingError as e:
+        raise UnableToRetrieveWeatherError(str(e))
 
     if not weather_data:
         weather_data = await fetch_and_process_weather_data(
@@ -122,9 +122,7 @@ async def fetch_and_process_weather_data(
 
                 # Check if response status is not 200 and handle errors
                 if response.status != 200:
-                    await handle_weather_api_error(
-                        response, transl, geo_data['city_en']
-                    )
+                    await handle_weather_api_error(response, transl)
 
                 try:
                     data = await response.json()
@@ -145,9 +143,7 @@ async def fetch_and_process_weather_data(
         if data_type in ('forecast', 'both'):
             async with session.get(urls['forecast']) as response:
                 if response.status != 200:
-                    await handle_weather_api_error(
-                        response, transl, geo_data['city_en']
-                    )
+                    await handle_weather_api_error(response, transl)
 
                 try:
                     data = await response.json()
@@ -243,30 +239,30 @@ def process_current_weather_data(data, default_value):
     return current_data
 
 
-async def handle_weather_api_error(response, trans, city):
-    """
-    Handles errors from the weather API response.
+# async def handle_weather_api_error(response, trans, city):
+#     """
+#     Handles errors from the weather API response.
 
-    This function:
-    - Reads the error message from the API response.
-    - Raises appropriate exceptions based on the response status code.
+#     This function:
+#     - Reads the error message from the API response.
+#     - Raises appropriate exceptions based on the response status code.
 
-    Parameters:
-    response (aiohttp.ClientResponse): The HTTP response object.
-    trans (dict): Dictionary containing translations for error messages.
-    city (str): The city name.
+#     Parameters:
+#     response (aiohttp.ClientResponse): The HTTP response object.
+#     trans (dict): Dictionary containing translations for error messages.
+#     city (str): The city name.
 
-    Raises:
-    InvalidAPIKeyError: If the API key is invalid.
-    CityNotFoundError: If the city is not found.
-    UnableToRetrieveWeatherError: For other weather API errors.
-    """
-    error_msg = await response.text()
-    print("Weather API error response:", error_msg)
-    if response.status == 401:
-        raise InvalidAPIKeyError(trans['invalid_key'])
-    if response.status == 400:
-        raise CityNotFoundError(trans['city_not_found'] % {'city': city})
-    raise UnableToRetrieveWeatherError(
-        trans['unable_to_retrieve_weather'] % {'error': error_msg}
-    )
+#     Raises:
+#     InvalidAPIKeyError: If the API key is invalid.
+#     CityNotFoundError: If the city is not found.
+#     UnableToRetrieveWeatherError: For other weather API errors.
+#     """
+#     error_msg = await response.text()
+#     print("Weather API error response:", error_msg)
+#     if response.status == 401:
+#         raise InvalidAPIKeyError(trans['invalid_key'])
+#     if response.status == 400:
+#         raise CityNotFoundError(trans['city_not_found'] % {'city': city})
+#     raise UnableToRetrieveWeatherError(
+#         trans['unable_to_retrieve_weather'] % {'error': error_msg}
+#     )

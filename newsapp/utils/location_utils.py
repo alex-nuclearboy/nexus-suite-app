@@ -2,6 +2,7 @@ from django.core.cache import cache
 from django.conf import settings
 
 from asgiref.sync import sync_to_async
+import logging
 import aiohttp
 import aiofiles
 import pycountry
@@ -11,12 +12,15 @@ import re
 
 from .utils import generate_cache_key
 from .exceptions import (
-    GeocodingServiceError,
+    handle_geocoding_api_error,
+    GeocodingError,
     CityNotFoundError,
     WikipediaAPIError,
     JSONDecodingError,
     NameNotFoundError
 )
+
+logger = logging.getLogger(__name__)
 
 # API key for OpenCage Geocoding
 GEOCODING_API_KEY = os.getenv('GEOCODING_API_KEY')
@@ -88,17 +92,12 @@ async def geocode_city(city_name, country_code=None, transl=None):
                 f"&key={GEOCODING_API_KEY}"
             ) as response:
                 if response.status != 200:
-                    raise GeocodingServiceError(
-                        transl['geocoding_service_error'] %
-                        {'error': response.reason}
-                    )
+                    await handle_geocoding_api_error(response)
                 result = await response.json()
 
     except aiohttp.ClientError as e:
-        print(f"Geocoding service error: {e}")
-        raise GeocodingServiceError(
-            transl['geocoding_service_error'] % {'error': str(e)}
-        )
+        logger.error(f"Geocoding service error: {e}")
+        raise GeocodingError(f"Geocoding service error: {str(e)}")
 
     if result and len(result['results']):
         components = result['results'][0]['components']
@@ -134,7 +133,9 @@ async def geocode_city(city_name, country_code=None, transl=None):
         await sync_to_async(cache.set)(cache_key, geo_data, 3600)
         return geo_data
 
-    raise CityNotFoundError(transl['could_not_geocode'] % {'city': city_name})
+    error_msg = f"Geocoding error: Could not geocode city {city_name}"
+    logger.error(error_msg)
+    raise CityNotFoundError(error_msg)
 
 
 def get_country_name_by_code(country_code):
