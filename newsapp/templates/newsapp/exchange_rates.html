@@ -43,6 +43,11 @@
     <div class="content-container">
         <main>
             <h1>{{ translations.exchange_rates }}</h1>
+            {% if error_message %}
+            <div class="alert-error">
+                {{ error_message }}
+            </div>
+            {% else %}
             <section class="exchange-rates-section">
                 <table class="exchange-rates-table">
                     <thead>
@@ -67,6 +72,7 @@
                     </tbody>
                 </table>
             </section>
+            {% endif %}
         </main>
         <aside>
             <section class="currency-converter-section">
@@ -99,6 +105,11 @@
                         <label for="amount">{{ translations.amount }}</label>
                         <input type="number" id="amount" name="amount" value="{{ amount|default:0 }}" required>
                     </div>
+                    {% if conversion_error_message %}
+                    <div class="alert-error">
+                        {{ conversion_error_message }}
+                    </div>
+                    {% endif %}
                     <div class="form-group">
                         <label for="converted_amount">{{ translations.converted_amount }}</label>
                         <input type="text" id="converted_amount" name="converted_amount" value="{{ converted_amount }}" readonly style="background-color: #e9ecef;">
