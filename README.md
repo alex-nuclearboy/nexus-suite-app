@@ -1,3 +1,3 @@
 # NexusSuite App
 
-The personal assistant app
+The personal assistant application
