@@ -50,13 +50,7 @@
     <div class="content-container">
         <main>
             <h1>{{ translations.todays_news_from }} {{ genitive_country_name }}</h1>
-            <!-- {% for category, articles in limited_news.items %} -->
                 <section class="news-section">
-                    <!-- <h2>
-                        <a href="{% url 'newsapp:news_by_category' category %}?country={{ selected_country }}" class="category-link">
-                            {{ category_translations|get_item:category }}
-                        </a>
-                    </h2> -->
                     <h2>{{ translations.all_main_news }}</h2>
                     <ul class="news-list">
                         {% for article in articles %}
@@ -76,13 +70,6 @@
                     <a href="{% url 'newsapp:all_news' %}" class="view-more">
                         {{ translations.all_main_news }}
                     </a>
-                    <!-- <a href="{% url 'newsapp:news_by_category' category %}" class="view-more">
-                        {% if category == 'general' %}
-                            {{ translations.all_main_news }}
-                        {% else %}
-                            {{ translations.all_news_from }} {{ category_translations|get_item:category }}
-                        {% endif %}
-                    </a> -->
                 </section>
             {% endfor %}
         </main>
