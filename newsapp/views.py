@@ -107,29 +107,36 @@ class MainView(BaseView):
                 'unable_to_fetch_exchange_rates'
             ]
 
-        news_data = {}
+        # news_data = {}
+        # try:
+        #     for category in CATEGORY_MAP.keys():
+        #         try:
+        #             articles = (
+        #                 await fetch_news_by_category(category, country, transl)
+        #             )
+        #             news_data[category] = articles
+        #         except APIError:
+        #             articles = []
+        #             news_data[category] = articles
+
+        #     await sync_to_async(request.session.__setitem__)(
+        #         'news_data', news_data
+        #     )
+
+        #     limited_news = {
+        #         category: articles[:5] for category, articles
+        #         in news_data.items()
+        #     }
+        # except APIError as e:
+        #     logger.error(f"Error fetching news: {str(e)}")
+        #     limited_news = {}
+
         try:
-            for category in CATEGORY_MAP.keys():
-                try:
-                    articles = (
-                        await fetch_news_by_category(category, country, transl)
-                    )
-                    news_data[category] = articles
-                except APIError:
-                    articles = []
-                    news_data[category] = articles
-
-            await sync_to_async(request.session.__setitem__)(
-                'news_data', news_data
-            )
-
-            limited_news = {
-                category: articles[:5] for category, articles
-                in news_data.items()
-            }
+            general_news = await fetch_news_by_category('general', country, transl)
+            limited_news = general_news[:10]
         except APIError as e:
-            logger.error(f"Error fetching news: {str(e)}")
-            limited_news = {}
+            logger.error(f"Error fetching general news: {str(e)}")
+            limited_news = []
 
         formatted_local_update_time, formatted_user_update_time = \
             get_update_times(weather_data, user_timezone, transl)
@@ -139,6 +146,7 @@ class MainView(BaseView):
             'weather_data': weather_data,
             'exchange_rates': exchange_rates,
             'limited_news': limited_news,
+            'all_news_link': True,
             'selected_city': city,
             'selected_country': country,
             'selected_country_name': displayed_country_name,
