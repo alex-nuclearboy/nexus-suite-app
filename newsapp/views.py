@@ -140,11 +140,11 @@ class MainView(BaseView):
 
         try:
             general_news = await fetch_news_by_category('general', country, transl)
-            limited_news = general_news[:10]
+            articles = general_news[:10]
         except APIError as e:
             logger.error(f"Error fetching general news: {str(e)}")
             context['error_message'] = transl['unable_to_fetch_news']
-            limited_news = []
+            articles = []
 
         formatted_local_update_time, formatted_user_update_time = \
             get_update_times(weather_data, user_timezone, transl)
@@ -153,7 +153,7 @@ class MainView(BaseView):
             'weather_error_message': weather_error_message,
             'weather_data': weather_data,
             'exchange_rates': exchange_rates,
-            'limited_news': limited_news,
+            'articles': articles,
             'all_news_link': True,
             'selected_city': city,
             'selected_country': country,
