@@ -49,9 +49,17 @@
     </header>
     <div class="content-container">
         <main>
-            <h1>{{ translations.todays_news_from }} {{ genitive_country_name }}</h1>
+            <h1>
+                <a href="{% url 'newsapp:news_by_category' 'general' %}" style="text-decoration: none; color: #0466C8;">
+                    {{ translations.todays_news }}
+                </a>
+                {{ translations.from }}
+                {{ genitive_country_name }}
+            </h1>
+            {% if error_message %}
+                <p>{{ translations.unable_to_fetch_news }}</p>
+            {% else %}
                 <section class="news-section">
-                    <h2>{{ translations.all_main_news }}</h2>
                     <ul class="news-list">
                         {% for article in articles %}
                         <li class="news-item">
@@ -67,27 +75,14 @@
                         </li>
                         {% endfor %}
                     </ul>
-                    <a href="{% url 'newsapp:news_by_category' %}" class="view-more">
+                    <a href="{% url 'newsapp:news_by_category' 'general' %}" class="view-more">
                         {{ translations.all_main_news }}
                     </a>
                 </section>
+            {% endif %}
         </main>
         
         <aside>
-            <div class="news-form-container">
-                <label for="country">{{ translations.select_news_country }}</label>
-                <form method="GET" action="{% url 'newsapp:index' %}" class="news-form">
-                    <input type="hidden" name="city" value="{{ selected_city }}">
-                    <div class="form-group">
-                        <select id="country" name="country">
-                            {% for code, name in countries.items %}
-                                <option value="{{ code }}" {% if code == selected_country %}selected{% endif %}>{{ name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="submit-button">{{ translations.update_news }}</button>
-                </form>
-            </div>
             <div class="weather-container">
                 <div class="weather-header">
                     <span class="city_name">{{ selected_city }}</span>

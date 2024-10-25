@@ -76,6 +76,13 @@ class MainView(BaseView):
             )
         )
 
+        if language == 'en':
+            await sync_to_async(request.session.__setitem__)('selected_country', 'us')
+            country = 'us'
+        else:
+            await sync_to_async(request.session.__setitem__)('selected_country', 'ua')
+            country = 'ua'
+
         displayed_country_name = (
             COUNTRIES_UA.get(country, 'Unknown') if language == 'uk'
             else COUNTRIES.get(country, 'Unknown')
@@ -136,6 +143,7 @@ class MainView(BaseView):
             limited_news = general_news[:10]
         except APIError as e:
             logger.error(f"Error fetching general news: {str(e)}")
+            context['error_message'] = transl['unable_to_fetch_news']
             limited_news = []
 
         formatted_local_update_time, formatted_user_update_time = \
