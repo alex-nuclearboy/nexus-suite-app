@@ -105,7 +105,7 @@
                         <p class="condition"><strong>{{ weather_data.current.condition }}</strong></p>
                     </div>
                 {% else %}
-                    <p>{{ translations.unable_to_retrieve_weather }}</p>
+                    <p>{{ translations.unable_to_retrieve_weather }}.</p>
                     {% if weather_error_message %}
                         <div class="alert-error">{{ weather_error_message }}</div>
                     {% endif %}

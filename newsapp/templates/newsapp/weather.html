@@ -145,40 +145,76 @@
 
                 </div>
             </div>
+
+            <div class="weather-forecast-day">
+                <h2>{{ translations.daily_forecast }}</h2>
+                <table class="forecast-table">
+                    
+                    <tbody>
+                        <tr>
+                            {% for hour in weather_data.forecast.0.hour %}
+                                {% if forloop.counter0|divisibleby:3 %}
+                                    <td class="{% cycle 'odd-row' 'even-row' %}">
+                                        <p>
+                                            {% if language == 'uk' %}
+                                                {{ hour.time|date:"H:i" }}
+                                            {% else %}
+                                                {{ hour.time|date:"h:i A" }}
+                                            {% endif %}
+                                        </p>
+                                        <img src="http:{{ hour.condition.icon }}" alt="{{ hour.condition.text }}">
             
+                                        <div class="temperature" data-temp-c="{{ hour.temp_c }}" data-temp-f="{{ hour.temp_f }}">
+                                            <span class="forecast-temp-value" data-temp-c="{{ hour.temp_c }}" data-temp-f="{{ hour.temp_f }}">
+                                                {{ hour.temp_c }}<sup class="forecast-temp-unit">°C</sup>
+                                            </span>
+                                        </div>
+            
+                                        <div class="pressure" data-pressure-mmhg="{{ hour.pressure_mm }}" data-pressure-mb="{{ hour.pressure_mb }}" data-trans-mmhg="{{ translations.mmhg }}" data-trans-mb="{{ translations.mb }}">
+                                            {{ hour.pressure_mm }} {{ translations.mmhg }}
+                                        </div>
+            
+                                        <p>{{ hour.humidity }}%</p>
+            
+                                        <div class="wind" data-wind-mps="{{ hour.wind_mps }}" data-wind-kph="{{ hour.wind_kph }}" data-wind-mph="{{ hour.wind_mph }}" data-wind-dir="{{ hour.wind_dir }}" data-trans-wind="{{ translations.wind }}" data-trans-mps="{{ translations.mps }}" data-trans-kph="{{ translations.kph }}" data-trans-mph="{{ translations.mph }}">
+                                            <i class="bi {{ hour.wind_dir }}"></i> {{ hour.wind_mps }} {{ translations.mps }}
+                                        </div>
+                                    </td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-                <div class="weather-forecast-day">
-                    <h2>{{ translations.daily_forecast }}</h2>
-                    <div class="forecast-hourly">
-                        {% for hour in weather_data.forecast.0.hour %}
-                            <div class="hour">
-                                <p>{{ hour.time }}</p>
-                                <img src="http:{{ hour.condition.icon }}" alt="{{ hour.condition.text }}">
-                                <p class="temperature" data-temp-c="{{ hour.temp_c }}" data-temp-f="{{ hour.temp_f }}">
-                                    {{ hour.temp_c }}°C / {{ hour.temp_f }}°F
-                                </p>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
+            <div class="weather-forecast-three-days">
+                <h2>{{ translations.three_days_forecast }}</h2>
+                <table class="forecast-table">
+                    <tbody>
+                        <tr>
+                            {% for day in weather_data.forecast %}
+                                <td class="{% cycle 'odd-row' 'even-row' %}">
+                                    <p>
+                                        {{ day.forecast_date.day }}, {{ day.forecast_date.date }} {{ day.forecast_date.month }}
+                                    </p>
+                                    <img src="http:{{ day.day.condition.icon }}" alt="{{ day.day.condition.text }}">
+                                </td>
+                                <td class="{% cycle 'odd-row' 'even-row' %}">
+                                    <p class="temperature" data-temp-c="{{ day.day.min_temp_c }}" data-temp-f="{{ day.day.min_temp_f }}">
+                                        {{ day.min_temp_c }}°C / {{ day.min_temp_f }}°F
+                                    </p>
+                                </td>
+                                <td class="{% cycle 'odd-row' 'even-row' %}">
+                                    <p class="temperature" data-temp-c="{{ day.day.max_temp_c }}" data-temp-f="{{ day.day.max_temp_f }}">
+                                        {{ day.max_temp_c }}°C / {{ day.max_temp_f }}°F
+                                    </p>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-                <div class="weather-forecast-week">
-                    <h2>{{ translations.weekly_forecast }}</h2>
-                    <div class="forecast-daily">
-                        {% for day in weather_data.forecast %}
-                            <div class="day">
-                                <p>{{ day.date }}</p>
-                                <img src="http:{{ day.day.condition.icon }}" alt="{{ day.day.condition.text }}">
-                                <p class="temperature" data-temp-c="{{ day.day.maxtemp_c }}" data-temp-f="{{ day.day.maxtemp_f }}">
-                                    {{ day.day.maxtemp_c }}°C / {{ day.day.maxtemp_f }}°F
-                                </p>
-                                <p class="temperature" data-temp-c="{{ day.day.mintemp_c }}" data-temp-f="{{ day.day.mintemp_f }}">
-                                    {{ day.day.mintemp_c }}°C / {{ day.day.mintemp_f }}°F
-                                </p>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
             {% else %}
                 <h1>{{ translations.unable_to_retrieve_weather }}</h1>
             {% endif %}

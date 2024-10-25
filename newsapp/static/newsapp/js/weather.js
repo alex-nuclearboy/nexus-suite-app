@@ -35,11 +35,11 @@ document.addEventListener("DOMContentLoaded", function() {
         const visibilityUnit = document.querySelector('input[name="visibility-unit"]:checked').value;
 
         // Update temperature
-        const temperatureElements = document.querySelectorAll('.temp-value');
+        const temperatureElements = document.querySelectorAll('.temp-value, .forecast-temp-value');
         temperatureElements.forEach(el => {
             const tempC = el.getAttribute('data-temp-c');
             const tempF = el.getAttribute('data-temp-f');
-            el.innerHTML = (temperatureUnit === 'c') ? `${tempC}<sup class="temp-unit">°C</sup>` : `${tempF}<sup class="temp-unit">°F</sup>`;
+            el.innerHTML = (temperatureUnit === 'c') ? `${tempC}<sup class="temp-unit forecast-temp-unit">°C</sup>` : `${tempF}<sup class="temp-unit forecast-temp-unit">°F</sup>`;
         });
 
         // Update feels like temperature

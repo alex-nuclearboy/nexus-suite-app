@@ -1,12 +1,13 @@
 from django.core.cache import cache
 
 from asgiref.sync import sync_to_async
+from datetime import datetime
 import logging
 import aiohttp
 import os
 
 from .location_utils import get_country_name_by_code, geocode_city
-from .utils import generate_cache_key
+from .utils import generate_cache_key, get_translated_day_and_month
 
 from .exceptions import (
     handle_weather_api_error,
@@ -56,10 +57,21 @@ async def fetch_weather_data(city, transl, language='en', data_type='both'):
         raise UnableToRetrieveWeatherError(str(e))
 
     if not weather_data:
-        weather_data = await fetch_and_process_weather_data(
-            geo_data, transl, language, data_type, default_value
-        )
-        await sync_to_async(cache.set)(cache_key, weather_data, 3600)
+        # weather_data = await fetch_and_process_weather_data(
+        #     geo_data, transl, language, data_type, default_value
+        # )
+        # await sync_to_async(cache.set)(cache_key, weather_data, 3600)
+
+        try:
+            weather_data = await fetch_and_process_weather_data(
+                geo_data, transl, language, data_type, default_value
+            )
+            await sync_to_async(cache.set)(cache_key, weather_data, 3600)
+        except Exception:
+            # logger.error(f"Error fetching weather data: {str(e)}")
+            raise UnableToRetrieveWeatherError(
+                        transl['unable_to_retrieve_weather']
+                    )
 
     return weather_data
 
@@ -130,6 +142,10 @@ async def fetch_and_process_weather_data(
                     raise InvalidJSONResponseError(
                         transl['invalid_JSON_response']
                     )
+                except aiohttp.ContentTypeError:
+                    raise UnableToRetrieveWeatherError(
+                        transl['unable_to_retrieve_weather']
+                    )
 
                 if 'current' not in data or not data['current']:
                     raise IncompleteWeatherDataError(
@@ -151,20 +167,43 @@ async def fetch_and_process_weather_data(
                     raise InvalidJSONResponseError(
                         transl['invalid_JSON_response']
                     )
+                except aiohttp.ContentTypeError:
+                    raise UnableToRetrieveWeatherError(
+                        transl['unable_to_retrieve_weather']
+                    )
 
-                weather_data['forecast'] = (
-                    data.get('forecast', {}).get('forecastday', [])
-                )
-                for day in weather_data['forecast']:
-                    day['astro']['sunrise'] = (
-                        day['astro'].get('sunrise', default_value)
-                    )
-                    day['astro']['sunset'] = (
-                        day['astro'].get('sunset', default_value)
-                    )
-                    day['astro']['moon_phase'] = (
-                        day['astro'].get('moon_phase', default_value)
-                    )
+                forecast_days = data.get('forecast', {}).get('forecastday', [])
+                if forecast_days:
+                    today_forecast = forecast_days[0]
+                    today_forecast['astro'] = {
+                        'sunrise': today_forecast['astro'].get('sunrise', default_value),
+                        'sunset': today_forecast['astro'].get('sunset', default_value),
+                        'moon_phase': today_forecast['astro'].get('moon_phase', default_value),
+                    }
+                    for day in forecast_days:
+                        forecast_date = day.get('date')
+                        if forecast_date:
+                            translated_day, translated_month = get_translated_day_and_month(forecast_date)
+                            day['forecast_date'] = {
+                                'day': translated_day,
+                                'date': day['date'],
+                                'month': translated_month,
+                            }
+                        day['max_temp_c'] = round(day.get('day', {}).get('maxtemp_c', 0))
+                        day['max_temp_f'] = round(day.get('day', {}).get('maxtemp_f', 0))
+                        day['min_temp_c'] = round(day.get('day', {}).get('mintemp_c', 0))
+                        day['min_temp_f'] = round(day.get('day', {}).get('mintemp_f', 0))
+                        day['condition'] = day.get('day', {}).get('condition', default_value)
+
+                        for hour in day.get('hour', []):
+                            hour_time_str = hour.get('time')
+                            if hour_time_str:
+                                hour['time'] = datetime.strptime(hour_time_str, '%Y-%m-%d %H:%M')
+                            hour['temp_c'] = round(hour.get('temp_c', 0))
+                            hour['temp_f'] = round(hour.get('temp_f', 0))
+                            hour['wind_mps'] = round(hour.get('wind_kph', 0) / 3.6)  # m/s
+                            hour['pressure_mm'] = round(hour.get('pressure_mb', 0) * 0.750062)  # mmHg
+                    weather_data['forecast'] = forecast_days
 
         weather_data.update({
             'geo_city': geo_data['city_en'],
