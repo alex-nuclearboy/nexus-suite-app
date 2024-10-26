@@ -16,6 +16,7 @@
     --color-bg-light: #f5f4fa;
     --color-logo: #212121;
     --color-bg-blue: #001F54;
+    --color-bg-gray: #f1f1f1;
     --element-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
@@ -28,15 +29,40 @@ body {
     font-weight: 400;
 }
 
-h1 {
-    font-size: 24px;
-
-}
-
-.header {
+header {
     width: 100%;
 }
 
+main {
+    flex: 2;
+}
+
+aside {
+    flex: 1;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin: 0 0 32px 0;
+}
+
+h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin: 0 0 16px 0;
+}
+
+.content-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 40px auto;
+    gap: 20px;
+}
+
+/* Top Bar */
 .top-bar {
     display: flex;
     justify-content: space-between;
@@ -96,21 +122,31 @@ h1 {
     color: var(--color-brand);
 }
 
-.content-container {
+/* Button */
+.submit-button {
+    width: auto;
+    height: 40px;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 4px 20px;
+    background-color: var(--color-brand);
+    color: var(--color-light);
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
     display: flex;
-    max-width: 1200px;
-    margin: 40px auto;
-    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0;
+    box-shadow: var(--element-shadow);
 }
 
-main {
-    flex: 2;
+.submit-button:hover {
+background-color: var(--color-brand-dk);
 }
 
-aside {
-    flex: 1;
-}
-
+/* Main Page */
 .news-form-container {
     display: flex;
     flex-direction: column;
@@ -152,7 +188,7 @@ aside {
     height: 40px;
 }
 
-.news-form .submit-button {
+/* .news-form .submit-button {
     width: auto;
     height: 40px;
     font-size: 14px;
@@ -169,7 +205,7 @@ aside {
     justify-content: center;
     margin-top: 0;
     box-shadow: var(--element-shadow);
-}
+} */
 
 .news-form .submit-button:hover {
     background-color: var(--color-brand-dk);
@@ -385,6 +421,44 @@ aside {
     background-color: var(--color-brand-dk);
 }
 
+/* Exchange rates page */
+.exchange-rates-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.exchange-rates-table th,
+.exchange-rates-table td {
+    padding: 8px;
+    text-align: center;
+    border: none;
+}
+
+.exchange-rates-table th {
+    font-weight: 400;
+    color: var(--color-secondary);
+}
+
+.exchange-rates-table td {
+    font-weight: 400;
+    color: var(--color-secondary);
+}
+
+.exchange-rates-table .rate-value {
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.exchange-rates-table tr.odd {
+    background-color: var(--color-light);
+}
+
+.exchange-rates-table tr.even {
+    background-color: var(--color-bg-gray);
+}
+
+
+
 .exchange-rates {
     background-color: #f8f9fa;
     padding: 20px;
@@ -410,40 +484,7 @@ aside {
     color: var(--color-brand-dk);
 }
 
-.exchange-rates-table {
-    width: 100%;
-    border-collapse: collapse;
-}
 
-.exchange-rates-table th,
-.exchange-rates-table td {
-    padding: 8px;
-    text-align: center;
-    border: none;
-}
-
-.exchange-rates-table th {
-    font-weight: 400;
-    color: #757575;
-}
-
-.exchange-rates-table td {
-    font-weight: 400;
-    color: #757575;
-}
-
-.exchange-rates-table .rate-value {
-    font-weight: 600;
-    color: #212121;
-}
-
-.exchange-rates-table tr.odd {
-    background-color: #ffffff;
-}
-
-.exchange-rates-table tr.even {
-    background-color: #f1f1f1;
-}
 
 .category-list {
     list-style-type: none;
@@ -477,14 +518,6 @@ aside {
     box-shadow: var(--element-shadow);
 }
 
-.currency-converter-section label {
-    display: block;
-    margin-bottom: 12px;
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--color-primary);
-}
-
 .currency-converter-form {
     display: flex;
     flex-direction: column;
@@ -497,7 +530,7 @@ aside {
 .currency-converter-form label {
     display: block;
     margin-bottom: 8px;
-    margin-top: 20px;
+    margin-top: 0px;
     font-size: 16px;
     font-weight: 600;
     color: var(--color-primary);
@@ -512,24 +545,14 @@ aside {
     background-color: #ffffff;
     color: var(--color-primary);
     font-size: 14px;
+    margin-bottom: 12px;
 }
 
-.currency-converter-form button {
-    width: 100%;
-    padding: 10px;
-    background-color: var(--color-brand);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    margin-top: 10px;
+.currency-converter-form .result {
+    background-color: var(--color-bg-gray);
 }
 
-.currency-converter-form button:hover {
-    background-color: var(--color-brand-dk);
-}
+
 
 .unit-selection-box {
     background-color: var(--color-bg-light);
@@ -595,13 +618,13 @@ aside {
     margin-bottom: 20px;
 }
 
-.location-info h1 {
+/* .location-info h1 {
     font-size: 24px;
     color: var(--color-primary);
     margin: 0;
-}
+} */
 
-.location-info h2 {
+.location-info h3 {
     font-size: 14px;
     font-weight: 400;
     color: var(--color-secondary);
@@ -750,6 +773,11 @@ aside {
 
 .even-row {
     background-color: #ffffff;
+}
+
+.highlighted {
+    border: 2px solid #ffcc00;
+    background-color: rgba(255, 204, 0, 0.1);
 }
 
 
