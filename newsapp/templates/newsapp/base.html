@@ -1,37 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ request.session.language|default:'en' }}">
 <head>
     <meta charset="UTF-8"/>
     <title>{% block title %}Personal Assistant App{% endblock %}</title>
-    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Roboto:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <!-- <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"/> -->
     {% load static %}
-    <link rel="stylesheet" href="{% static 'newsapp/style.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'newsapp/style.css' %}">
     <link rel="icon" href="{% static 'newsapp/favicon.ico' %}">
 </head>
 
 <body>
     <header class="header">
-        <div class="left">
-            <div class="buttons">
-                <a href="/" role="button" class="homepage-button">{{ translations.dashboard }}</a>
-                {% block nav_left_buttons %}{% endblock %}
+        <div class="top-bar">
+            <div class="date-time">
+                <span>{{ current_time }} - {{ current_date }}</span>
             </div>
+            <a href="?lang={% if request.session.language == 'en' %}uk{% else %}en{% endif %}" class="language">
+                {% if request.session.language == 'en' %}
+                    Українською
+                {% else %}
+                    English
+                {% endif %}
+            </a>
         </div>
-        <div class="right">
-            <div class="buttons">
-                {% block nav_right_buttons %}
-                <div class="lang-buttons">
-                    <a href="?lang=en" role="button" class="outline">EN</a>
-                    <a href="?lang=uk" role="button" class="outline">UA</a>
-                </div>
-                {% endblock %}
+        <nav class="nav-bar">
+            <a class="brand" href="{% url 'newsapp:index' %}">
+                <span class="accent">Nexus</span>Suite
+            </a>
+
+            <div class="auth-links">
+                <a href="{% url 'newsapp:index' %}">{{ translations.sign_up }}</a>
+                <a href="{% url 'newsapp:index' %}">{{ translations.login }}</a>
             </div>
-        </div>
+        </nav>
     </header>
 
-    <main class="container">
+    <div class="content-container">
         {% block content %} {% endblock %}
-    </main>
+    </div>
 
 </body>
 </html>
