@@ -59,6 +59,22 @@ document.addEventListener("DOMContentLoaded", function() {
             el.textContent = (temperatureUnit === 'c') ? `${dewpointC}°C` : `${dewpointF}°F`;
         });
 
+        // 
+        const minTempElements = document.querySelectorAll('.min-temp .forecast-temp-value');
+        const maxTempElements = document.querySelectorAll('.max-temp .forecast-temp-value');
+
+        minTempElements.forEach(el => {
+            const minTempC = el.getAttribute('data-temp-c');
+            const minTempF = el.getAttribute('data-temp-f');
+            el.innerHTML = (temperatureUnit === 'c') ? `${minTempC}<sup class="temp-unit forecast-temp-unit">°C</sup>` : `${minTempF}<sup class="temp-unit forecast-temp-unit">°F</sup>`;
+        });
+
+        maxTempElements.forEach(el => {
+            const maxTempC = el.getAttribute('data-temp-c');
+            const maxTempF = el.getAttribute('data-temp-f');
+            el.innerHTML = (temperatureUnit === 'c') ? `${maxTempC}<sup class="temp-unit forecast-temp-unit">°C</sup>` : `${maxTempF}<sup class="temp-unit forecast-temp-unit">°F</sup>`;
+        });
+
         // Update pressure
         const pressureElements = document.querySelectorAll('.pressure');
         pressureElements.forEach(el => {
