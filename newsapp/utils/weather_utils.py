@@ -29,22 +29,26 @@ async def fetch_weather_data(city, transl, language='en', data_type='both'):
     - Attempts to retrieve weather data from the cache.
     - Geocodes the city to get its latitude and longitude.
     - Fetches and processes weather data if not available in the cache.
-    - Stores the fetched weather data in the cache.
+    - Fetches and processes weather data from an external weather API if not
+      available in the cache.
+    - Stores the fetched weather data in the cache for future access.
 
     Parameters:
-    city (str): The name of the city.
+    city (str): Name of the city for which weather data is being fetched.
     transl (dict): Dictionary containing translations for error messages.
     language (str): Language code (default: 'en').
-    data_type (str): Type of weather data to fetch
-                     ('current', 'forecast', or 'both').
+    data_type (str): Type of weather data to fetch:
+                       'current' - for current weather data,
+                       'forecast' - for 3-day forecast,
+                       'both' - for both current and forecast data.
 
     Returns:
-    dict: The weather data.
+    dict: A dictionary containing the fetched weather data.
 
     Raises:
-    CityNotFoundError: If the city cannot be found.
-    GeocodingServiceError: If there is an error with the geocoding service.
-    UnableToRetrieveWeatherError: If the weather data cannot be retrieved.
+    GeocodingError: Raised if the geocoding service fails to locate the city.
+    UnableToRetrieveWeatherError: Raised if there is an issue retrieving
+                                  the weather data from the API.
     """
     cache_key = generate_cache_key('weather_data', city, language, data_type)
     weather_data = await sync_to_async(cache.get)(cache_key)
@@ -57,18 +61,12 @@ async def fetch_weather_data(city, transl, language='en', data_type='both'):
         raise UnableToRetrieveWeatherError(str(e))
 
     if not weather_data:
-        # weather_data = await fetch_and_process_weather_data(
-        #     geo_data, transl, language, data_type, default_value
-        # )
-        # await sync_to_async(cache.set)(cache_key, weather_data, 3600)
-
         try:
             weather_data = await fetch_and_process_weather_data(
                 geo_data, transl, language, data_type, default_value
             )
             await sync_to_async(cache.set)(cache_key, weather_data, 3600)
         except Exception:
-            # logger.error(f"Error fetching weather data: {str(e)}")
             raise UnableToRetrieveWeatherError(
                         transl['unable_to_retrieve_weather']
                     )
@@ -85,26 +83,27 @@ async def fetch_and_process_weather_data(
     This function:
     - Generates a cache key based on the geocoded city data, language,
       and data type.
-    - Attempts to retrieve weather data from the cache.
-    - Constructs URLs for the weather API based on the data type.
     - Fetches current and/or forecast weather data from the API.
     - Processes the fetched weather data.
-    - Stores the processed weather data in the cache.
+    - Processes the fetched data, handling translation of dates and error
+      messages as needed.
+    - Returns a structured dictionary with relevant weather information.
 
     Parameters:
     geo_data (dict): Geocoded data including city name, coordinates, etc.
     transl (dict): Dictionary containing translations for error messages.
-    language (str): Language code.
+    language (str): Language code for data localization.
     data_type (str): Type of weather data to fetch
                      ('current', 'forecast', or 'both').
-    default_value (str): Default value for missing data.
+    default_value (str): Default value for missing or unavailable data.
 
     Returns:
-    dict: The processed weather data.
+    dict: A dictionary containing processed weather data.
 
     Raises:
-    InvalidJSONResponseError: If the weather API returns invalid JSON.
-    IncompleteWeatherDataError: If the weather data is incomplete.
+    InvalidJSONResponseError: Raised if the API response is not valid JSON.
+    IncompleteWeatherDataError: Raised if the API response contains
+                                incomplete weather data.
     """
     cache_key = generate_cache_key(
         'weather_data', geo_data['city_en'], language, data_type
@@ -176,33 +175,67 @@ async def fetch_and_process_weather_data(
                 if forecast_days:
                     today_forecast = forecast_days[0]
                     today_forecast['astro'] = {
-                        'sunrise': today_forecast['astro'].get('sunrise', default_value),
-                        'sunset': today_forecast['astro'].get('sunset', default_value),
-                        'moon_phase': today_forecast['astro'].get('moon_phase', default_value),
+                        'sunrise': today_forecast['astro'].get('sunrise',
+                                                               default_value),
+                        'sunset': today_forecast['astro'].get('sunset',
+                                                              default_value),
+                        'moon_phase': today_forecast['astro'].get('moon_phase',
+                                                                  default_value
+                                                                  ),
                     }
                     for day in forecast_days:
-                        forecast_date = day.get('date')
-                        if forecast_date:
-                            translated_day, translated_month = get_translated_day_and_month(forecast_date)
+                        forecast_date_str = day.get('date')
+                        if forecast_date_str:
+                            forecast_date = datetime.strptime(
+                                forecast_date_str, '%Y-%m-%d'
+                            )
+                            translated_day, translated_month = (
+                                get_translated_day_and_month(forecast_date,
+                                                             language)
+                            )
+
                             day['forecast_date'] = {
                                 'day': translated_day,
-                                'date': day['date'],
+                                'date': forecast_date.day,
                                 'month': translated_month,
                             }
-                        day['max_temp_c'] = round(day.get('day', {}).get('maxtemp_c', 0))
-                        day['max_temp_f'] = round(day.get('day', {}).get('maxtemp_f', 0))
-                        day['min_temp_c'] = round(day.get('day', {}).get('mintemp_c', 0))
-                        day['min_temp_f'] = round(day.get('day', {}).get('mintemp_f', 0))
-                        day['condition'] = day.get('day', {}).get('condition', default_value)
+                            day['max_temp_c'] = (
+                                round(day.get('day', {}).get('maxtemp_c', 0))
+                            )
+                            day['max_temp_f'] = (
+                                round(day.get('day', {}).get('maxtemp_f', 0))
+                            )
+                            day['min_temp_c'] = (
+                                round(day.get('day', {}).get('mintemp_c', 0))
+                            )
+                            day['min_temp_f'] = (
+                                round(day.get('day', {}).get('mintemp_f', 0))
+                            )
+                            day['condition'] = (
+                                day.get('day', {}).get('condition',
+                                                       default_value)
+                            )
 
-                        for hour in day.get('hour', []):
-                            hour_time_str = hour.get('time')
-                            if hour_time_str:
-                                hour['time'] = datetime.strptime(hour_time_str, '%Y-%m-%d %H:%M')
-                            hour['temp_c'] = round(hour.get('temp_c', 0))
-                            hour['temp_f'] = round(hour.get('temp_f', 0))
-                            hour['wind_mps'] = round(hour.get('wind_kph', 0) / 3.6)  # m/s
-                            hour['pressure_mm'] = round(hour.get('pressure_mb', 0) * 0.750062)  # mmHg
+                            for hour in day.get('hour', []):
+                                hour_time_str = hour.get('time')
+                                if hour_time_str:
+                                    hour['time'] = (
+                                        datetime.strptime(hour_time_str,
+                                                          '%Y-%m-%d %H:%M')
+                                    )
+                                    hour['temp_c'] = (
+                                        round(hour.get('temp_c', 0))
+                                    )
+                                    hour['temp_f'] = (
+                                        round(hour.get('temp_f', 0))
+                                    )
+                                    hour['wind_mps'] = (
+                                        round(hour.get('wind_kph', 0) / 3.6)
+                                    )
+                                    hour['pressure_mm'] = (
+                                        round(hour.get('pressure_mb', 0)
+                                              * 0.750062)
+                                    )
                     weather_data['forecast'] = forecast_days
 
         weather_data.update({
@@ -219,19 +252,20 @@ async def fetch_and_process_weather_data(
 
 def process_current_weather_data(data, default_value):
     """
-    Process current weather data.
+    Process current weather data to extract and format information.
 
     This function:
-    - Extracts and processes relevant weather data from the API response.
-    - Handles missing data by using a default value.
-    - Formats the extracted weather data.
+    - Extracts temperature, pressure, wind speed, visibility, and other details
+      from the API response.
+    - Handles any missing data using a provided default value.
+    - Prepares the data for easy access and display.
 
     Parameters:
-    data (dict): The weather data from the API.
-    default_value (str): Default value for missing data.
+    data (dict): JSON data from the weather API response.
+    default_value (str): Default value to use for missing or unavailable data.
 
     Returns:
-    dict: The processed current weather data.
+    dict: Processed data dictionary with formatted current weather details.
     """
     api_city = data['location'].get('name', default_value)
     api_region = data['location'].get('region', default_value)
@@ -276,32 +310,3 @@ def process_current_weather_data(data, default_value):
     }
 
     return current_data
-
-
-# async def handle_weather_api_error(response, trans, city):
-#     """
-#     Handles errors from the weather API response.
-
-#     This function:
-#     - Reads the error message from the API response.
-#     - Raises appropriate exceptions based on the response status code.
-
-#     Parameters:
-#     response (aiohttp.ClientResponse): The HTTP response object.
-#     trans (dict): Dictionary containing translations for error messages.
-#     city (str): The city name.
-
-#     Raises:
-#     InvalidAPIKeyError: If the API key is invalid.
-#     CityNotFoundError: If the city is not found.
-#     UnableToRetrieveWeatherError: For other weather API errors.
-#     """
-#     error_msg = await response.text()
-#     print("Weather API error response:", error_msg)
-#     if response.status == 401:
-#         raise InvalidAPIKeyError(trans['invalid_key'])
-#     if response.status == 400:
-#         raise CityNotFoundError(trans['city_not_found'] % {'city': city})
-#     raise UnableToRetrieveWeatherError(
-#         trans['unable_to_retrieve_weather'] % {'error': error_msg}
-#     )
