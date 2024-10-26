@@ -133,7 +133,7 @@ async def geocode_city(city_name, country_code=None, transl=None):
         await sync_to_async(cache.set)(cache_key, geo_data, 3600)
         return geo_data
 
-    error_msg = f"Geocoding error: Could not geocode city {city_name}"
+    error_msg = f"Geocoding error: Could not geocode city '{city_name}'"
     logger.error(error_msg)
     raise CityNotFoundError(error_msg)
 
