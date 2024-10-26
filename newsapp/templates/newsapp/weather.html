@@ -1,281 +1,279 @@
+{% extends "newsapp/base.html" %}
 {% load static %}
 {% load custom_filters %}
 {% load custom_tags %}
 
-<!DOCTYPE html>
-<html lang="{{ language }}">
-<head>
-    <meta charset="UTF-8"/>
-    <title>{{ translations.weather }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Roboto:wght@400;500;700;900&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{% static 'newsapp/style.css' %}">
-    <link rel="icon" href="{% static 'newsapp/favicon.ico' %}">
+{% block title %}{{ translations.weather }}{% endblock %}
 
-    <!-- Include timezone.js -->
-    <script src="{% static 'newsapp/js/timezone.js' %}" defer></script>
+{% block style %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.3/font/bootstrap-icons.min.css">
+{% endblock %}
 
-    <!-- Include weather.js -->
-    <script src="{% static 'newsapp/js/weather.js' %}" defer></script>
+{% block script %}
+<!-- Include timezone.js -->
+<script src="{% static 'newsapp/js/timezone.js' %}" defer></script>
 
-</head>
-<body>
-    <header class="header">
-        <div class="top-bar">
-            <div class="date-time">
-                <span>{{ current_time }} - {{ current_date }}</span>
-            </div>
-            <a href="?lang={% if language == 'en' %}uk{% else %}en{% endif %}" class="language">
-                {% if language == 'en' %}
-                    Українською
-                {% else %}
-                    English
-                {% endif %}
-            </a>
-        </div>
-        <nav class="nav-bar">
-            <a class="brand" href="{% url 'newsapp:index' %}">
-                <span class="accent">Nexus</span>Suite
-            </a>
-            <div class="auth-links">
-                <a href="{% url 'newsapp:index' %}">{{ translations.sign_up }}</a>
-                <a href="{% url 'newsapp:index' %}">{{ translations.login }}</a>
-            </div>
-        </nav>
-    </header>
-    <div class="content-container">
-        <main>
-            {% if weather_data %}
-            <div class="location-info">
-                <h1>{{ weather_in_text }} {{ city }}</h1>
-                {% if region %}
-                    <h2>{{ region }}, {{ country_name }}</h2>
-                {% else %}
-                    <h2>{{ country_name }}</h2>
-                {% endif %}
-                <p>{{ translations.update_time }}: {{ user_update_time }}</p>
-                <!-- <p>{{ translations.localtime }}: {{ weather_data.current.localtime }}</p> -->
-            </div>
-            <div class="weather-overview">
-                <div class="weather-icon">
-                    <img src="{{ weather_data.current.icon_url }}" alt="{{ weather_data.current.condition }}">
-                </div>
-                <div class="weather-details">
-                    <div class="temperature" data-temp-c="{{ weather_data.current.temperature_c }}" data-temp-f="{{ weather_data.current.temperature_f }}">
-                        <div class="temp-value" data-temp-c="{{ weather_data.current.temperature_c }}" data-temp-f="{{ weather_data.current.temperature_f }}">
-                            {{ weather_data.current.temperature_c }}<sup class="temp-unit">°C</sup>
-                        </div>
-                    </div>
-                </div>
-                <div class="condition-feelslike">
-                    <div class="condition">{{ weather_data.current.condition }}</div>
-                    <div class="feelslike" data-feelslike-c="{{ weather_data.current.feelslike_c }}" data-feelslike-f="{{ weather_data.current.feelslike_f }}" data-trans-feelslike="{{ translations.feels_like }}">
-                        {{ translations.feels_like }} {{ weather_data.current.feelslike_c }}°C
-                    </div>
-                </div>
-            </div>
-            
-            <div class="additional-details">
-                <div class="detail">
-                    <span>
-                        <img class="weather-icons" src="{% static 'newsapp/icons/wind.png' %}" alt="Wind">
-                        {{ translations.wind }}
-                    </span>
-                    <span class="wind" data-wind-mps="{{ weather_data.current.wind_mps }}" data-wind-kph="{{ weather_data.current.wind_kph }}" data-wind-mph="{{ weather_data.current.wind_mph }}" data-wind-dir="{{ weather_data.current.wind_dir }}" data-trans-wind="{{ translations.wind }}" data-trans-mps="{{ translations.mps }}" data-trans-kph="{{ translations.kph }}" data-trans-mph="{{ translations.mph }}">
-                        <i class="bi {{ weather_data.current.wind_dir }}"></i> {{ weather_data.current.wind_mps }} {{ translations.mps }}
-                    </span>
-                </div>
-                <div class="detail">
-                    <span>
-                        <img class="weather-icons" src="{% static 'newsapp/icons/humidity.png' %}" alt="Humidity">
-                        {{ translations.humidity }}
-                    </span>
-                    <span class="humidity" data-trans-humidity="{{ translations.humidity }}">{{ weather_data.current.humidity }}%</span>
-                </div>
-                <div class="detail">
-                    <span>
-                        <img class="weather-icons" src="{% static 'newsapp/icons/pressure.png' %}" alt="Pressure">
-                        {{ translations.pressure }}
-                    </span>
-                    <span class="pressure" data-pressure-mmhg="{{ weather_data.current.pressure_mm }}" data-pressure-mb="{{ weather_data.current.pressure_mb }}" data-trans-pressure="{{ translations.pressure }}" data-trans-mmhg="{{ translations.mmhg }}" data-trans-mb="{{ translations.mb }}">
-                        {{ weather_data.current.pressure_mm }} {{ translations.mmhg }}
-                    </span>
-                </div>
-                <div class="detail">
-                    <span>
-                        <img class="weather-icons" src="{% static 'newsapp/icons/visibility.png' %}" alt="Visibility">
-                        {{ translations.visibility }}
-                    </span>
-                    <span class="visibility" data-visibility-km="{{ weather_data.current.visibility_km }}" data-visibility-miles="{{ weather_data.current.visibility_miles }}" data-trans-visibility="{{ translations.visibility }}" data-trans-km="{{ translations.km }}" data-trans-miles="{{ translations.miles }}" data-lang="{{ language }}">
-                        {{ weather_data.current.visibility_km }} {{ translations.km }}
-                    </span>
-                </div>
-                <div class="detail">
-                    <span>
-                        <img class="weather-icons" src="{% static 'newsapp/icons/dew_point.png' %}" alt="Dew Point">
-                        {{ translations.dewpoint }}
-                    </span>
-                    <span class="dewpoint" data-dewpoint-c="{{ weather_data.current.dewpoint_c }}" data-dewpoint-f="{{ weather_data.current.dewpoint_f }}" data-trans-dewpoint="{{ translations.dewpoint }}">
-                        {{ weather_data.current.dewpoint_c }}°C
-                    </span>
-                </div>
-                <div class="detail">
-                    <span>
-                        <img class="weather-icons" src="{% static 'newsapp/icons/uv.png' %}" alt="UV Index">
-                        {{ translations.uv_index }}
-                    </span>
-                    <span>{{ weather_data.current.uv_index }}</span>
-                </div>
-                <div class="detail">
-                    <img class="sun-icons" src="{% static 'newsapp/icons/sunrise.png' %}" alt="Sunrise">
-                    <span>{{ weather_data.forecast.0.astro.sunrise|format_time_24h }}</span>
-                </div>
-                <div class="detail">
-                    <img class="sun-icons" src="{% static 'newsapp/icons/sunset.png' %}" alt="Sunset">
-                    <span>{{ weather_data.forecast.0.astro.sunset|format_time_24h }}</span>
-                </div>
-                <div class="detail">
-                    <span>{{ translations.moon_phase }}</span>
-                    {% moon_phase_icon weather_data.forecast.0.astro.moon_phase language %}
+<!-- Include weather.js -->
+<script src="{% static 'newsapp/js/weather.js' %}" defer></script>
+{% endblock %}
 
-                </div>
-            </div>
+{% block content %}
 
-            <div class="weather-forecast-day">
-                <h2>{{ translations.daily_forecast }}</h2>
-                <table class="forecast-table">
-                    
-                    <tbody>
-                        <tr>
-                            {% for hour in weather_data.forecast.0.hour %}
-                                {% if forloop.counter0|divisibleby:3 %}
-                                    <td class="{% cycle 'odd-row' 'even-row' %}">
-                                        <p>
-                                            {% if language == 'uk' %}
-                                                {{ hour.time|date:"H:i" }}
-                                            {% else %}
-                                                {{ hour.time|date:"h:i A" }}
-                                            {% endif %}
-                                        </p>
-                                        <img src="http:{{ hour.condition.icon }}" alt="{{ hour.condition.text }}">
-            
-                                        <div class="temperature" data-temp-c="{{ hour.temp_c }}" data-temp-f="{{ hour.temp_f }}">
-                                            <span class="forecast-temp-value" data-temp-c="{{ hour.temp_c }}" data-temp-f="{{ hour.temp_f }}">
-                                                {{ hour.temp_c }}<sup class="forecast-temp-unit">°C</sup>
-                                            </span>
-                                        </div>
-            
-                                        <div class="pressure" data-pressure-mmhg="{{ hour.pressure_mm }}" data-pressure-mb="{{ hour.pressure_mb }}" data-trans-mmhg="{{ translations.mmhg }}" data-trans-mb="{{ translations.mb }}">
-                                            {{ hour.pressure_mm }} {{ translations.mmhg }}
-                                        </div>
-            
-                                        <p>{{ hour.humidity }}%</p>
-            
-                                        <div class="wind" data-wind-mps="{{ hour.wind_mps }}" data-wind-kph="{{ hour.wind_kph }}" data-wind-mph="{{ hour.wind_mph }}" data-wind-dir="{{ hour.wind_dir }}" data-trans-wind="{{ translations.wind }}" data-trans-mps="{{ translations.mps }}" data-trans-kph="{{ translations.kph }}" data-trans-mph="{{ translations.mph }}">
-                                            <i class="bi {{ hour.wind_dir }}"></i> {{ hour.wind_mps }} {{ translations.mps }}
-                                        </div>
-                                    </td>
-                                {% endif %}
-                            {% endfor %}
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="weather-forecast-three-days">
-                <h2>{{ translations.three_days_forecast }}</h2>
-                <table class="forecast-table">
-                    <tbody>
-                        <tr>
-                            {% for day in weather_data.forecast %}
-                                <td class="{% cycle 'odd-row' 'even-row' %}">
-                                    <p>
-                                        {{ day.forecast_date.day }}, {{ day.forecast_date.date }} {{ day.forecast_date.month }}
-                                    </p>
-                                    <img src="http:{{ day.day.condition.icon }}" alt="{{ day.day.condition.text }}">
-                                </td>
-                                <td class="{% cycle 'odd-row' 'even-row' %}">
-                                    <p class="temperature" data-temp-c="{{ day.day.min_temp_c }}" data-temp-f="{{ day.day.min_temp_f }}">
-                                        {{ day.min_temp_c }}°C / {{ day.min_temp_f }}°F
-                                    </p>
-                                </td>
-                                <td class="{% cycle 'odd-row' 'even-row' %}">
-                                    <p class="temperature" data-temp-c="{{ day.day.max_temp_c }}" data-temp-f="{{ day.day.max_temp_f }}">
-                                        {{ day.max_temp_c }}°C / {{ day.max_temp_f }}°F
-                                    </p>
-                                </td>
-                            {% endfor %}
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            {% else %}
-                <h1>{{ translations.unable_to_retrieve_weather }}</h1>
-            {% endif %}
-        </main>
-        <aside>
-            <div class="weather-container">
-                <label for="city">{{ translations.change_city_for_weather }}</label>
-                {% if error_message %}
-                    <div class="alert-error">{{ error_message }}</div>
-                {% endif %}
-                <form method="GET" action="{% url 'newsapp:weather' %}" class="weather-form">
-                    <div class="form-group">
-                        <input type="text" id="city" name="city" placeholder="{{ translations.enter_city_name }}" value="" required>
-                    </div>
-                    <button type="submit" class="submit-button">{{ translations.update_weather }}</button>
-                </form>
-            </div>
-            <div class="unit-selection-box">
-                <label class="unit-selection-title">{{ translations.measurement_units }}</label>
-                <div class="unit-selection">
-                    <div class="unit-option">
-                        <label><b>{{ translations.temperature }}:</b></label>
-                        <div class="unit-radio-group">
-                            <input type="radio" id="temp-c" name="temperature-unit" value="c" checked>
-                            <label for="temp-c">°C</label>
-                            <input type="radio" id="temp-f" name="temperature-unit" value="f">
-                            <label for="temp-f">°F</label>
-                        </div>
-                    </div>
-                    <div class="unit-option">
-                        <label><b>{{ translations.pressure }}:</b></label>
-                        <div class="unit-radio-group">
-                            <input type="radio" id="pressure-mmhg" name="pressure-unit" value="mmhg" checked>
-                            <label for="pressure-mmhg">{{ translations.mmhg }}</label>
-                            <input type="radio" id="pressure-mb" name="pressure-unit" value="mb">
-                            <label for="pressure-mb">{{ translations.mb }}</label>
-                        </div>
-                    </div>
-                    <div class="unit-option">
-                        <label><b>{{ translations.wind }}:</b></label>
-                        <div class="unit-radio-group">
-                            <input type="radio" id="wind-mps" name="wind-unit" value="mps" checked>
-                            <label for="wind-mps">{{ translations.mps }}</label>
-                            <input type="radio" id="wind-kph" name="wind-unit" value="kph">
-                            <label for="wind-kph">{{ translations.kph }}</label>
-                            <input type="radio" id="wind-mph" name="wind-unit" value="mph">
-                            <label for="wind-mph">{{ translations.mph }}</label>
-                        </div>
-                    </div>
-                    <div class="unit-option">
-                        <label><b>{{ translations.visibility }}:</b></label>
-                        <div class="unit-radio-group">
-                            <input type="radio" id="visibility-km" name="visibility-unit" value="km" checked>
-                            <label for="visibility-km">{{ translations.km }}</label>
-                            <input type="radio" id="visibility-miles" name="visibility-unit" value="miles">
-                            <label for="visibility-miles">{{ translations.miles }}</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
+<main>
+    {% if weather_data %}
+    <div class="location-info">
+        <h1>{{ weather_in_text }} {{ city }}</h1>
+        {% if region %}
+        <h3>{{ region }}, {{ country_name }}</h3>
+        {% else %}
+        <h3>{{ country_name }}</h3>
+        {% endif %}
+        <p>{{ translations.update_time }}: {{ user_update_time }}</p>
     </div>
-</body>
-</html>
+    <div class="weather-overview">
+        <div class="weather-icon">
+            <img src="{{ weather_data.current.icon_url }}" alt="{{ weather_data.current.condition }}">
+        </div>
+        <div class="weather-details">
+            <div class="temperature" data-temp-c="{{ weather_data.current.temperature_c }}"
+                data-temp-f="{{ weather_data.current.temperature_f }}">
+                <div class="temp-value" data-temp-c="{{ weather_data.current.temperature_c }}"
+                    data-temp-f="{{ weather_data.current.temperature_f }}">
+                    {{ weather_data.current.temperature_c }}<sup class="temp-unit">°C</sup>
+                </div>
+            </div>
+        </div>
+        <div class="condition-feelslike">
+            <div class="condition">{{ weather_data.current.condition }}</div>
+            <div class="feelslike" data-feelslike-c="{{ weather_data.current.feelslike_c }}"
+                data-feelslike-f="{{ weather_data.current.feelslike_f }}"
+                data-trans-feelslike="{{ translations.feels_like }}">
+                {{ translations.feels_like }} {{ weather_data.current.feelslike_c }}°C
+            </div>
+        </div>
+    </div>
+
+    <div class="additional-details">
+        <div class="detail">
+            <span>
+                <img class="weather-icons" src="{% static 'newsapp/icons/wind.png' %}" alt="Wind">
+                {{ translations.wind }}
+            </span>
+            <span class="wind" data-wind-mps="{{ weather_data.current.wind_mps }}" data-wind-kph="{{ weather_data.current.wind_kph }}" data-wind-mph="{{ weather_data.current.wind_mph }}" data-wind-dir="{{ weather_data.current.wind_dir }}" data-trans-wind="{{ translations.wind }}" data-trans-mps="{{ translations.mps }}" data-trans-kph="{{ translations.kph }}" data-trans-mph="{{ translations.mph }}">
+                <i class="bi {{ weather_data.current.wind_dir }}"></i> {{ weather_data.current.wind_mps }} {{ translations.mps }}
+            </span>
+        </div>
+        <div class="detail">
+            <span>
+                <img class="weather-icons" src="{% static 'newsapp/icons/humidity.png' %}" alt="Humidity">
+                {{ translations.humidity }}
+            </span>
+            <span class="humidity" data-trans-humidity="{{ translations.humidity }}">{{ weather_data.current.humidity }}%</span>
+        </div>
+        <div class="detail">
+            <span>
+                <img class="weather-icons" src="{% static 'newsapp/icons/pressure.png' %}" alt="Pressure">
+                {{ translations.pressure }}
+            </span>
+            <span class="pressure" data-pressure-mmhg="{{ weather_data.current.pressure_mm }}"
+                data-pressure-mb="{{ weather_data.current.pressure_mb }}"
+                data-trans-pressure="{{ translations.pressure }}" data-trans-mmhg="{{ translations.mmhg }}"
+                data-trans-mb="{{ translations.mb }}">
+                {{ weather_data.current.pressure_mm }} {{ translations.mmhg }}
+            </span>
+        </div>
+        <div class="detail">
+            <span>
+                <img class="weather-icons" src="{% static 'newsapp/icons/visibility.png' %}" alt="Visibility">
+                {{ translations.visibility }}
+            </span>
+            <span class="visibility" data-visibility-km="{{ weather_data.current.visibility_km }}"
+                data-visibility-miles="{{ weather_data.current.visibility_miles }}"
+                data-trans-visibility="{{ translations.visibility }}" data-trans-km="{{ translations.km }}"
+                data-trans-miles="{{ translations.miles }}" data-lang="{{ language }}">
+                {{ weather_data.current.visibility_km }} {{ translations.km }}
+            </span>
+        </div>
+        <div class="detail">
+            <span>
+                <img class="weather-icons" src="{% static 'newsapp/icons/dew_point.png' %}" alt="Dew Point">
+                {{ translations.dewpoint }}
+            </span>
+            <span class="dewpoint" data-dewpoint-c="{{ weather_data.current.dewpoint_c }}"
+                data-dewpoint-f="{{ weather_data.current.dewpoint_f }}"
+                data-trans-dewpoint="{{ translations.dewpoint }}">
+                {{ weather_data.current.dewpoint_c }}°C
+            </span>
+        </div>
+        <div class="detail">
+            <span>
+                <img class="weather-icons" src="{% static 'newsapp/icons/uv.png' %}" alt="UV Index">
+                {{ translations.uv_index }}
+            </span>
+            <span>{{ weather_data.current.uv_index }}</span>
+        </div>
+        <div class="detail">
+            <img class="sun-icons" src="{% static 'newsapp/icons/sunrise.png' %}" alt="Sunrise">
+            <span>{{ weather_data.forecast.0.astro.sunrise|format_time_24h }}</span>
+        </div>
+        <div class="detail">
+            <img class="sun-icons" src="{% static 'newsapp/icons/sunset.png' %}" alt="Sunset">
+            <span>{{ weather_data.forecast.0.astro.sunset|format_time_24h }}</span>
+        </div>
+        <div class="detail">
+            <span>{{ translations.moon_phase }}</span>
+            {% moon_phase_icon weather_data.forecast.0.astro.moon_phase language %}
+
+        </div>
+    </div>
+
+    <div class="weather-forecast-day">
+        <h2>{{ translations.daily_forecast }}</h2>
+        <table class="forecast-table">
+            <tbody>
+                <tr>
+                    {% for hour in weather_data.forecast.0.hour %}
+                    {% if forloop.counter0|divisibleby:3 %}
+                    <td class="{% cycle 'odd-row' 'even-row' %}">
+                        <p>
+                            {% if language == 'uk' %}
+                            {{ hour.time|date:"H:i" }}
+                            {% else %}
+                            {{ hour.time|date:"h:i A" }}
+                            {% endif %}
+                        </p>
+                        <img src="http:{{ hour.condition.icon }}" alt="{{ hour.condition.text }}">
+
+                        <div class="temperature" data-temp-c="{{ hour.temp_c }}" data-temp-f="{{ hour.temp_f }}">
+                            <span class="forecast-temp-value" data-temp-c="{{ hour.temp_c }}"
+                                data-temp-f="{{ hour.temp_f }}">
+                                {{ hour.temp_c }}<sup class="forecast-temp-unit">°C</sup>
+                            </span>
+                        </div>
+
+                        <div class="pressure" data-pressure-mmhg="{{ hour.pressure_mm }}"
+                            data-pressure-mb="{{ hour.pressure_mb }}" data-trans-mmhg="{{ translations.mmhg }}"
+                            data-trans-mb="{{ translations.mb }}">
+                            {{ hour.pressure_mm }} {{ translations.mmhg }}
+                        </div>
+
+                        <p>{{ hour.humidity }}%</p>
+
+                        <div class="wind" data-wind-mps="{{ hour.wind_mps }}" data-wind-kph="{{ hour.wind_kph }}"
+                            data-wind-mph="{{ hour.wind_mph }}" data-wind-dir="{{ hour.wind_dir }}"
+                            data-trans-wind="{{ translations.wind }}" data-trans-mps="{{ translations.mps }}"
+                            data-trans-kph="{{ translations.kph }}" data-trans-mph="{{ translations.mph }}">
+                            <i class="bi {{ hour.wind_dir }}"></i> {{ hour.wind_mps }} {{ translations.mps }}
+                        </div>
+                    </td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="weather-forecast-three-days">
+        <h2>{{ translations.three_days_forecast }}</h2>
+        <table class="forecast-table">
+            <tbody>
+                <tr>
+                    {% for day in weather_data.forecast %}
+                    <td class="{% cycle 'odd-row' 'even-row' %}" style="text-align: center;">
+                        <p style="font-weight: bold; margin: 0;">
+                            {{ day.forecast_date.date }} {{ day.forecast_date.month }}
+                        </p>
+                        <p>{{ day.forecast_date.day }}</p>
+                        <img src="http:{{ day.day.condition.icon }}" alt="{{ day.day.condition.text }}">
+
+                        <div class="temperature">
+                            <div class="temp-columns" style="display: flex; justify-content: space-between;">
+                                <div class="min-temp" style="flex: 1; text-align: center;">
+                                    <span class="temp-label">{{ translations.min_temp }}</span><br>
+                                    <span class="forecast-temp-value" data-temp-c="{{ day.min_temp_c }}"
+                                        data-temp-f="{{ day.min_temp_f }}">
+                                        {{ day.min_temp_c }}<sup class="forecast-temp-unit">°C</sup>
+                                    </span>
+                                </div>
+                                <div class="max-temp" style="flex: 1; text-align: center;">
+                                    <span class="temp-label">{{ translations.max_temp }}</span><br>
+                                    <span class="forecast-temp-value" data-temp-c="{{ day.max_temp_c }}"
+                                        data-temp-f="{{ day.max_temp_f }}">
+                                        {{ day.max_temp_c }}<sup class="forecast-temp-unit">°C</sup>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+
+    {% else %}
+    <h1>{{ translations.unable_to_retrieve_weather }}</h1>
+    {% endif %}
+</main>
+
+<aside>
+    <div class="weather-container">
+        <label for="city">{{ translations.change_city_for_weather }}</label>
+        {% if error_message %}
+        <div class="alert-error">{{ error_message }}</div>
+        {% endif %}
+        <form method="GET" action="{% url 'newsapp:weather' %}" class="weather-form">
+            <div class="form-group">
+                <input type="text" id="city" name="city" placeholder="{{ translations.enter_city_name }}" value=""
+                    required>
+            </div>
+            <button type="submit" class="submit-button">{{ translations.update_weather }}</button>
+        </form>
+    </div>
+    <div class="unit-selection-box">
+        <label class="unit-selection-title">{{ translations.measurement_units }}</label>
+        <div class="unit-selection">
+            <div class="unit-option">
+                <label><b>{{ translations.temperature }}:</b></label>
+                <div class="unit-radio-group">
+                    <input type="radio" id="temp-c" name="temperature-unit" value="c" checked>
+                    <label for="temp-c">°C</label>
+                    <input type="radio" id="temp-f" name="temperature-unit" value="f">
+                    <label for="temp-f">°F</label>
+                </div>
+            </div>
+            <div class="unit-option">
+                <label><b>{{ translations.pressure }}:</b></label>
+                <div class="unit-radio-group">
+                    <input type="radio" id="pressure-mmhg" name="pressure-unit" value="mmhg" checked>
+                    <label for="pressure-mmhg">{{ translations.mmhg }}</label>
+                    <input type="radio" id="pressure-mb" name="pressure-unit" value="mb">
+                    <label for="pressure-mb">{{ translations.mb }}</label>
+                </div>
+            </div>
+            <div class="unit-option">
+                <label><b>{{ translations.wind }}:</b></label>
+                <div class="unit-radio-group">
+                    <input type="radio" id="wind-mps" name="wind-unit" value="mps" checked>
+                    <label for="wind-mps">{{ translations.mps }}</label>
+                    <input type="radio" id="wind-kph" name="wind-unit" value="kph">
+                    <label for="wind-kph">{{ translations.kph }}</label>
+                    <input type="radio" id="wind-mph" name="wind-unit" value="mph">
+                    <label for="wind-mph">{{ translations.mph }}</label>
+                </div>
+            </div>
+            <div class="unit-option">
+                <label><b>{{ translations.visibility }}:</b></label>
+                <div class="unit-radio-group">
+                    <input type="radio" id="visibility-km" name="visibility-unit" value="km" checked>
+                    <label for="visibility-km">{{ translations.km }}</label>
+                    <input type="radio" id="visibility-miles" name="visibility-unit" value="miles">
+                    <label for="visibility-miles">{{ translations.miles }}</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</aside>
+{% endblock %}
