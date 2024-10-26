@@ -1,159 +1,130 @@
+{% extends "newsapp/base.html" %}
 {% load static %}
 {% load custom_filters %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8"/>
-    <title>{% block title %}NexusSuite{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Roboto:wght@400;500;700;900&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="{% static 'newsapp/style.css' %}">
-    <link rel="icon" href="{% static 'newsapp/favicon.ico' %}">
+{% block title %}NexusSuite{% endblock %}
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            fetch(`/set_timezone/?timezone=${timezone}`, { method: 'GET' });
-        });
-    </script>
-</head>
-<body>
-    <header class="header">
-        <div class="top-bar">
-            <div class="date-time">
-                <span>{{ current_time }} - {{ current_date }}</span>
+{% block content %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        fetch(`/set_timezone/?timezone=${timezone}`, { method: 'GET' });
+    });
+</script>
+
+<main>
+    <h1>
+        <a href="{% url 'newsapp:news_by_category' 'general' %}" style="text-decoration: none; color: #0466C8;">
+            {{ translations.todays_news }}
+        </a>
+        {{ translations.from }}
+        {{ genitive_country_name }}
+    </h1>
+    {% if error_message %}
+    <p>{{ translations.unable_to_fetch_news }}</p>
+    {% else %}
+    <section class="news-section">
+        <ul class="news-list">
+            {% for article in articles %}
+            <li class="news-item">
+                <div class="news-time">
+                    <small>
+                        {{ article.published_at|default_if_none:"N/A"|format_time_filter:request.session.language }}
+                    </small>
+                </div>
+                <div class="news-content">
+                    <a href="{{ article.url }}">{{ article.title }}</a>
+                    <span>({{ article.source }})</span>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'newsapp:news_by_category' 'general' %}" class="view-more">
+            {{ translations.all_main_news }}
+        </a>
+    </section>
+    {% endif %}
+</main>
+
+<aside>
+    <div class="weather-container">
+        <div class="weather-header">
+            <span class="city_name">{{ selected_city }}</span>
+            <div>
+                <a href="{% url 'newsapp:weather' %}" class="weather-link">{{ translations.weather }} ></a>
             </div>
-            <a href="?lang={% if request.session.language == 'en' %}uk{% else %}en{% endif %}" class="language">
-                {% if request.session.language == 'en' %}
-                    Українською
-                {% else %}
-                    English
-                {% endif %}
-            </a>
         </div>
-        <nav class="nav-bar">
-            <a class="brand" href="{% url 'newsapp:index' %}">
-                <span class="accent">Nexus</span>Suite
-            </a>
-
-            <div class="auth-links">
-                <a href="{% url 'newsapp:index' %}">{{ translations.sign_up }}</a>
-                <a href="{% url 'newsapp:index' %}">{{ translations.login }}</a>
-            </div>
-        </nav>
-    </header>
-    <div class="content-container">
-        <main>
-            <h1>
-                <a href="{% url 'newsapp:news_by_category' 'general' %}" style="text-decoration: none; color: #0466C8;">
-                    {{ translations.todays_news }}
-                </a>
-                {{ translations.from }}
-                {{ genitive_country_name }}
-            </h1>
-            {% if error_message %}
-                <p>{{ translations.unable_to_fetch_news }}</p>
-            {% else %}
-                <section class="news-section">
-                    <ul class="news-list">
-                        {% for article in articles %}
-                        <li class="news-item">
-                            <div class="news-time">
-                                <small>
-                                    {{ article.published_at|default_if_none:"N/A"|format_time_filter:request.session.language }}
-                                </small>
-                            </div>
-                            <div class="news-content">
-                                <a href="{{ article.url }}">{{ article.title }}</a> 
-                                <span>({{ article.source }})</span>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    <a href="{% url 'newsapp:news_by_category' 'general' %}" class="view-more">
-                        {{ translations.all_main_news }}
-                    </a>
-                </section>
-            {% endif %}
-        </main>
-        
-        <aside>
-            <div class="weather-container">
-                <div class="weather-header">
-                    <span class="city_name">{{ selected_city }}</span>
-                    <div>
-                        <a href="{% url 'newsapp:weather' %}" class="weather-link">{{ translations.weather }} ></a>
+        {% if weather_data %}
+        <p class="time">{{ user_update_time }}</p>
+        <div class="weather-details">
+            <div class="main-info">
+                <div class="temperature">
+                    <div class="temp-value">
+                        {{ weather_data.current.temperature_c }}<sup class="temp-unit">°C</sup>
                     </div>
                 </div>
-                {% if weather_data %}
-                    <p class="time">{{ user_update_time }}</p>
-                    <div class="weather-details">
-                        <div class="main-info">
-                            <div class="temperature"><div class="temp-value">{{ weather_data.current.temperature_c }}<sup class="temp-unit">°C</sup></div></div>
-                            <img src="{{ weather_data.current.icon_url }}" alt="Weather Icon">
-                            <div class="other-details">
-                                <p><span>{{ translations.humidity_ix }}</span>: <strong>{{ weather_data.current.humidity }}%</strong></p>
-                                <p><span>{{ translations.pressure_ix }}</span>: <strong>{{ weather_data.current.pressure_mm }} {{ translations.mmHg }}</strong></p>
-                                <p><span>{{ translations.wind_ix }}</span>: <strong>{{ weather_data.current.wind_mps }} {{ translations.mps }}</strong></p>
-                            </div>
-                        </div>
-                        <p class="condition"><strong>{{ weather_data.current.condition }}</strong></p>
-                    </div>
-                {% else %}
-                    <p>{{ translations.unable_to_retrieve_weather }}.</p>
-                    {% if weather_error_message %}
-                        <div class="alert-error">{{ weather_error_message }}</div>
-                    {% endif %}
-                {% endif %}
+                <img src="{{ weather_data.current.icon_url }}" alt="Weather Icon">
+                <div class="other-details">
+                    <p><span>{{ translations.humidity_ix }}</span>: <strong>{{ weather_data.current.humidity }}%</strong></p>
+                    <p><span>{{ translations.pressure_ix }}</span>: <strong>{{ weather_data.current.pressure_mm }} {{ translations.mmHg }}</strong></p>
+                    <p><span>{{ translations.wind_ix }}</span>: <strong>{{ weather_data.current.wind_mps }} {{ translations.mps }}</strong></p>
+                </div>
+            </div>
+            <p class="condition"><strong>{{ weather_data.current.condition }}</strong></p>
+        </div>
+        {% else %}
+        <p>{{ translations.unable_to_retrieve_weather }}.</p>
+        {% if weather_error_message %}
+        <div class="alert-error">{{ weather_error_message }}</div>
+        {% endif %}
+        {% endif %}
 
-                <div class="weather-form-container">
-                    <form method="GET" action="{% url 'newsapp:index' %}" class="weather-form">
-                        <input type="hidden" name="country" value="{{ selected_country }}">
-                        <div class="form-group">
-                            <input type="text" id="city" name="city" placeholder="{{ translations.enter_city_name }}" value="{{ selected_city }}" required>
-                        </div>
-                        <button type="submit" class="submit-button">{{ translations.update_weather }}</button>
-                    </form>
+        <div class="weather-form-container">
+            <form method="GET" action="{% url 'newsapp:index' %}" class="weather-form">
+                <input type="hidden" name="country" value="{{ selected_country }}">
+                <div class="form-group">
+                    <input type="text" id="city" name="city" placeholder="{{ translations.enter_city_name }}"
+                        value="{{ selected_city }}" required>
                 </div>
-            </div>
-            <div class="exchange-rates">
-                {% if exchange_rate_error_message %}
-                <div class="alert-error">
-                    {{ exchange_rate_error_message }}
-                </div>
-                {% else %}
-                <div class="exchange-rates-header">
-                    <a href="{% url 'newsapp:exchange_rates' %}" class="exchange-rate-link">{{ translations.exchange_rates }} ></a>
-                </div>
-                <table class="exchange-rates-table">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>{{ translations.rate }}</th>
-                            <th>{{ translations.purchase }}</th>
-                            <th>{{ translations.sale }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for rate in exchange_rates %}
-                            <tr class="{% cycle 'odd' 'even' %}">
-                                <td>{{ rate.currency }}</td>
-                                <td class="rate-value">{{ rate.saleRateNB }}</td>
-                                <td class="rate-value">{{ rate.purchaseRate|default_if_none:"-" }}</td>
-                                <td class="rate-value">{{ rate.saleRate|default_if_none:"-" }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% endif %}
-            
-        </aside>
+                <button type="submit" class="submit-button">{{ translations.update_weather }}</button>
+            </form>
+        </div>
     </div>
-</body>
+    <div class="exchange-rates">
+        {% if exchange_rate_error_message %}
+        <div class="alert-error">
+            {{ exchange_rate_error_message }}
+        </div>
+        {% else %}
+        <div class="exchange-rates-header">
+            <a href="{% url 'newsapp:exchange_rates' %}" class="exchange-rate-link">{{ translations.exchange_rates }}
+                ></a>
+        </div>
+        <table class="exchange-rates-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>{{ translations.rate }}</th>
+                    <th>{{ translations.purchase }}</th>
+                    <th>{{ translations.sale }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rate in exchange_rates %}
+                <tr class="{% cycle 'odd' 'even' %}">
+                    <td>{{ rate.currency }}</td>
+                    <td class="rate-value">{{ rate.saleRateNB }}</td>
+                    <td class="rate-value">{{ rate.purchaseRate|default_if_none:"-" }}</td>
+                    <td class="rate-value">{{ rate.saleRate|default_if_none:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+</aside>
+{% endblock %}
+
 </html>
