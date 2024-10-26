@@ -14,6 +14,8 @@
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'newsapp/style.css' %}">
     <link rel="icon" href="{% static 'newsapp/favicon.ico' %}">
+    {% block style %}{% endblock %}
+    {% block script %}{% endblock %}
 </head>
 
 <body>
