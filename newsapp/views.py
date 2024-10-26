@@ -77,10 +77,14 @@ class MainView(BaseView):
         )
 
         if language == 'en':
-            await sync_to_async(request.session.__setitem__)('selected_country', 'us')
+            await sync_to_async(request.session.__setitem__)(
+                'selected_country', 'us'
+            )
             country = 'us'
         else:
-            await sync_to_async(request.session.__setitem__)('selected_country', 'ua')
+            await sync_to_async(request.session.__setitem__)(
+                'selected_country', 'ua'
+            )
             country = 'ua'
 
         displayed_country_name = (
@@ -114,32 +118,9 @@ class MainView(BaseView):
                 'unable_to_fetch_exchange_rates'
             ]
 
-        # news_data = {}
-        # try:
-        #     for category in CATEGORY_MAP.keys():
-        #         try:
-        #             articles = (
-        #                 await fetch_news_by_category(category, country, transl)
-        #             )
-        #             news_data[category] = articles
-        #         except APIError:
-        #             articles = []
-        #             news_data[category] = articles
-
-        #     await sync_to_async(request.session.__setitem__)(
-        #         'news_data', news_data
-        #     )
-
-        #     limited_news = {
-        #         category: articles[:5] for category, articles
-        #         in news_data.items()
-        #     }
-        # except APIError as e:
-        #     logger.error(f"Error fetching news: {str(e)}")
-        #     limited_news = {}
-
         try:
-            general_news = await fetch_news_by_category('general', country, transl)
+            general_news = await fetch_news_by_category('general',
+                                                        country, transl)
             articles = general_news[:10]
         except APIError as e:
             logger.error(f"Error fetching general news: {str(e)}")
@@ -205,7 +186,6 @@ class WeatherView(BaseView):
 
         except UnableToRetrieveWeatherError:
             error_message = transl['could_not_geocode'] % {'city': city}
-            logger.error(f"Weather retrieval error: City '{city}' not found")
             weather_data = None
             country_name = None
             region = None
