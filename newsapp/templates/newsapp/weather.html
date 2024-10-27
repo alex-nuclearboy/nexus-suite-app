@@ -134,8 +134,8 @@
                 <tr>
                     {% for hour in weather_data.forecast.0.hour %}
                     {% if forloop.counter0|divisibleby:3 %}
-                    <td class="{% cycle 'odd-row' 'even-row' %}">
-                        <p>
+                    <td class="{% cycle 'odd-column' 'even-column' %}">
+                        <p class="time">
                             {% if language == 'uk' %}
                             {{ hour.time|date:"H:i" }}
                             {% else %}
@@ -157,7 +157,7 @@
                             {{ hour.pressure_mm }} {{ translations.mmhg }}
                         </div>
 
-                        <p>{{ hour.humidity }}%</p>
+                        <div style="margin: 12px;">{{ hour.humidity }}%</div>
 
                         <div class="wind" data-wind-mps="{{ hour.wind_mps }}" data-wind-kph="{{ hour.wind_kph }}"
                             data-wind-mph="{{ hour.wind_mph }}" data-wind-dir="{{ hour.wind_dir }}"
@@ -179,23 +179,23 @@
             <tbody>
                 <tr>
                     {% for day in weather_data.forecast %}
-                    <td class="{% cycle 'odd-row' 'even-row' %}" style="text-align: center;">
-                        <p style="font-weight: bold; margin: 0;">
+                    <td class="{% cycle 'odd-column' 'even-column' %}">
+                        <p class="date">
                             {{ day.forecast_date.date }} {{ day.forecast_date.month }}
                         </p>
-                        <p>{{ day.forecast_date.day }}</p>
+                        <p class="day">{{ day.forecast_date.day }}</p>
                         <img src="http:{{ day.day.condition.icon }}" alt="{{ day.day.condition.text }}">
 
                         <div class="temperature">
                             <div class="temp-columns" style="display: flex; justify-content: space-between;">
-                                <div class="min-temp" style="flex: 1; text-align: center;">
+                                <div class="min-temp">
                                     <span class="temp-label">{{ translations.min_temp }}</span><br>
                                     <span class="forecast-temp-value" data-temp-c="{{ day.min_temp_c }}"
                                         data-temp-f="{{ day.min_temp_f }}">
                                         {{ day.min_temp_c }}<sup class="forecast-temp-unit">°C</sup>
                                     </span>
                                 </div>
-                                <div class="max-temp" style="flex: 1; text-align: center;">
+                                <div class="max-temp">
                                     <span class="temp-label">{{ translations.max_temp }}</span><br>
                                     <span class="forecast-temp-value" data-temp-c="{{ day.max_temp_c }}"
                                         data-temp-f="{{ day.max_temp_f }}">
@@ -219,21 +219,20 @@
 </main>
 
 <aside>
-    <div class="weather-container">
-        <label for="city">{{ translations.change_city_for_weather }}</label>
+    <div class="sidebar-container">
+        <h2>{{ translations.change_city_for_weather }}</h2>
         {% if error_message %}
         <div class="alert-error">{{ error_message }}</div>
         {% endif %}
-        <form method="GET" action="{% url 'newsapp:weather' %}" class="weather-form">
+        <form method="GET" action="{% url 'newsapp:weather' %}" class="sidebar-container-form weather-form">
             <div class="form-group">
-                <input type="text" id="city" name="city" placeholder="{{ translations.enter_city_name }}" value=""
-                    required>
+                <input type="text" id="city" name="city" placeholder="{{ translations.enter_city_name }}" value="" required>
             </div>
             <button type="submit" class="submit-button">{{ translations.update_weather }}</button>
         </form>
     </div>
-    <div class="unit-selection-box">
-        <label class="unit-selection-title">{{ translations.measurement_units }}</label>
+    <div class="sidebar-container">
+        <h2>{{ translations.measurement_units }}</h2>
         <div class="unit-selection">
             <div class="unit-option">
                 <label><b>{{ translations.temperature }}:</b></label>

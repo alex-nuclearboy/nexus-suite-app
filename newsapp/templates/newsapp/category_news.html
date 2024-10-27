@@ -1,98 +1,61 @@
+{% extends "newsapp/base.html" %}
 {% load static %}
 {% load custom_filters %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ translations.todays_news_from }} {{ category_translations|get_item:selected_category }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Roboto:wght@400;500;700;900&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="{% static 'newsapp/style.css' %}">
-    <link rel="icon" href="{% static 'newsapp/favicon.ico' %}">
-</head>
-<body>
-    <header class="header">
-        <div class="top-bar">
-            <div class="date-time">
-                <span>{{ current_time }} - {{ current_date }}</span>
-            </div>
-            <a href="?lang={% if request.session.language == 'en' %}uk{% else %}en{% endif %}" class="language">
-                {% if request.session.language == 'en' %}
-                    Українською
-                {% else %}
-                    English
-                {% endif %}
-            </a>
-        </div>
-        <nav class="nav-bar">
-            <a class="brand" href="{% url 'newsapp:index' %}">
-                <span class="accent">Nexus</span>Suite
-            </a>
+{% block title %}{{ translations.todays_news_from }} {{ category_translations|get_item:selected_category }}{% endblock %}
 
-            <div class="auth-links">
-                <a href="{% url 'newsapp:index' %}">{{ translations.sign_up }}</a>
-                <a href="{% url 'newsapp:index' %}">{{ translations.login }}</a>
-            </div>
-        </nav>
-    </header>
-    <div class="content-container">
-        <main>
-            {% if error_message %}
-                <h1>{{ translations.unable_to_fetch_news }}</h1>
-            {% else %}
-                <h1>{{ category_title }}</h1>
-            {% endif %}
-            <section class="news-section">
-                <ul class="news-list">
-                    {% for article in articles %}
-                    <li class="news-item">
-                        <div class="news-time">
-                            <small>
-                                {{ article.published_at|format_time_filter:request.session.language }}
-                            </small>
-                        </div>
-                        <div class="news-content">
-                            <a href="{{ article.url }}">{{ article.title }}</a> 
-                            <span>({{ article.source }})</span>
-                        </div>
-                    </li>
+{% block content %}
+
+<main>
+    {% if error_message %}
+    <h1>{{ translations.unable_to_fetch_news }}</h1>
+    {% else %}
+    <h1>{{ category_title }}</h1>
+    {% endif %}
+    <section class="news-section">
+        <ul class="news-list">
+            {% for article in articles %}
+            <li class="news-item">
+                <div class="news-time">
+                    <small>
+                        {{ article.published_at|format_time_filter:request.session.language }}
+                    </small>
+                </div>
+                <div class="news-content">
+                    <a href="{{ article.url }}">{{ article.title }}</a>
+                    <span>({{ article.source }})</span>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+</main>
+
+<aside>
+    <div class="sidebar-container">
+        <h2 for="country">{{ translations.select_news_country }}</h2>
+        <form method="GET" action="{% url 'newsapp:news_by_category' selected_category %}" class="sidebar-container-form news-form">
+            <div class="form-group">
+                <select id="country" name="country">
+                    {% for code, name in countries.items %}
+                    <option value="{{ code }}" {% if code == selected_country %}selected{% endif %}>{{ name }}</option>
                     {% endfor %}
-                </ul>
-            </section>
-        </main>
-
-        <aside>
-            <div class="news-form-container">
-                <label for="country">{{ translations.select_news_country }}</label>
-                <form method="GET" action="{% url 'newsapp:news_by_category' selected_category %}" class="news-form">
-                    <div class="form-group">
-                        <select id="country" name="country">
-                            {% for code, name in countries.items %}
-                                <option value="{{ code }}" {% if code == selected_country %}selected{% endif %}>{{ name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="submit-button">{{ translations.update_news }}</button>
-                </form>
+                </select>
             </div>
-            <h2>{{ translations.categories }}</h2>
-            <ul class="category-list">
-                {% for category in categories %}
-                    <li class="category-item">
-                        <a href="{% url 'newsapp:news_by_category' category %}"
-                           class="{% if category == selected_category %}active{% endif %}">
-                            {{ category_translations|get_item:category }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </aside>
-        
+            <button type="submit" class="submit-button">{{ translations.update_news }}</button>
+        </form>
     </div>
-</body>
-</html>
+    <h2>{{ translations.categories }}</h2>
+    <ul class="category-list">
+        {% for category in categories %}
+        <li class="category-item">
+            <a href="{% url 'newsapp:news_by_category' category %}"
+                class="{% if category == selected_category %}active{% endif %}">
+                {{ category_translations|get_item:category }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</aside>
+
+{% endblock content %}

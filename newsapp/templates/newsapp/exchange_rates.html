@@ -41,9 +41,9 @@
 </main>
 
 <aside>
-    <section class="currency-converter-section">
+    <section class="sidebar-container converter-box">
         <h2>{{ translations.currency_converter }}</h2>
-        <form method="POST" action="{% url 'newsapp:convert_currency' %}" class="currency-converter-form">
+        <form method="POST" action="{% url 'newsapp:convert_currency' %}" class="sidebar-container-form converter-form">
             {% csrf_token %}
             <div class="form-group">
                 <label for="from_currency">{{ translations.from_currency }}</label>
@@ -78,7 +78,7 @@
             {% endif %}
             <div class="form-group">
                 <label for="converted_amount">{{ translations.converted_amount }}</label>
-                <input type="text" id="converted_amount" name="converted_amount" value="{{ converted_amount }}" readonly class="result">
+                <input type="text" id="converted_amount" name="converted_amount" value="{{ converted_amount }}" readonly class="converter-result">
             </div>
             <button type="submit" class="submit-button">{{ translations.convert }}</button>
         </form>

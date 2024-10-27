@@ -232,6 +232,9 @@ async def fetch_and_process_weather_data(
                                     hour['wind_mps'] = (
                                         round(hour.get('wind_kph', 0) / 3.6)
                                     )
+                                    hour['pressure_mb'] = (
+                                        round(hour.get('pressure_mb', 0))
+                                    )
                                     hour['pressure_mm'] = (
                                         round(hour.get('pressure_mb', 0)
                                               * 0.750062)

@@ -39,7 +39,14 @@ document.addEventListener("DOMContentLoaded", function() {
         temperatureElements.forEach(el => {
             const tempC = el.getAttribute('data-temp-c');
             const tempF = el.getAttribute('data-temp-f');
-            el.innerHTML = (temperatureUnit === 'c') ? `${tempC}<sup class="temp-unit forecast-temp-unit">°C</sup>` : `${tempF}<sup class="temp-unit forecast-temp-unit">°F</sup>`;
+            if (el.classList.contains('temp-value')) {
+                // Застосовуємо клас для головного елемента
+                el.innerHTML = (temperatureUnit === 'c') ? `${tempC}<sup class="temp-unit">°C</sup>` : `${tempF}<sup class="temp-unit">°F</sup>`;
+            } else {
+                // Застосовуємо клас для елементів прогнозу
+                el.innerHTML = (temperatureUnit === 'c') ? `${tempC}<sup class="forecast-temp-unit">°C</sup>` : `${tempF}<sup class="forecast-temp-unit">°F</sup>`;
+            }
+            // el.innerHTML = (temperatureUnit === 'c') ? `${tempC}<sup class="temp-unit forecast-temp-unit">°C</sup>` : `${tempF}<sup class="temp-unit forecast-temp-unit">°F</sup>`;
         });
 
         // Update feels like temperature
@@ -82,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const pressureMB = el.getAttribute('data-pressure-mb');
             const transMMHG = el.getAttribute('data-trans-mmhg');
             const transMB = el.getAttribute('data-trans-mb');
-            el.textContent = (pressureUnit === 'mmhg') ? `${pressureMMHG} ${transMMHG}` : `${pressureMB} ${transMB}`;
+            el.textContent = (pressureUnit === 'mmhg') ? `${pressureMMHG} ${transMMHG}` : `${pressureMB}  ${transMB}`;
         });
 
         // Update wind

@@ -15,7 +15,7 @@
 
 <main>
     <h1>
-        <a href="{% url 'newsapp:news_by_category' 'general' %}" style="text-decoration: none; color: #0466C8;">
+        <a href="{% url 'newsapp:news_by_category' 'general' %}" class="header-link">
             {{ translations.todays_news }}
         </a>
         {{ translations.from }}
@@ -48,11 +48,11 @@
 </main>
 
 <aside>
-    <div class="weather-container">
+    <div class="sidebar-container weather-box">
         <div class="weather-header">
             <span class="city_name">{{ selected_city }}</span>
             <div>
-                <a href="{% url 'newsapp:weather' %}" class="weather-link">{{ translations.weather }} ></a>
+                <a href="{% url 'newsapp:weather' %}" class="header-link">{{ translations.weather }} ></a>
             </div>
         </div>
         {% if weather_data %}
@@ -81,7 +81,7 @@
         {% endif %}
 
         <div class="weather-form-container">
-            <form method="GET" action="{% url 'newsapp:index' %}" class="weather-form">
+            <form method="GET" action="{% url 'newsapp:index' %}" class="sidebar-container-form weather-form">
                 <input type="hidden" name="country" value="{{ selected_country }}">
                 <div class="form-group">
                     <input type="text" id="city" name="city" placeholder="{{ translations.enter_city_name }}"
@@ -91,14 +91,14 @@
             </form>
         </div>
     </div>
-    <div class="exchange-rates">
+    <div class="sidebar-container">
         {% if exchange_rate_error_message %}
         <div class="alert-error">
             {{ exchange_rate_error_message }}
         </div>
         {% else %}
         <div class="exchange-rates-header">
-            <a href="{% url 'newsapp:exchange_rates' %}" class="exchange-rate-link">{{ translations.exchange_rates }}
+            <a href="{% url 'newsapp:exchange_rates' %}" class="header-link">{{ translations.exchange_rates }}
                 ></a>
         </div>
         <table class="exchange-rates-table">
