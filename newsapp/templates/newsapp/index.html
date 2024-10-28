@@ -49,7 +49,7 @@
 
 <aside>
     <div class="sidebar-container weather-box">
-        <div class="weather-header">
+        <div class="flex-container weather-header">
             <span class="city_name">{{ selected_city }}</span>
             <div>
                 <a href="{% url 'newsapp:weather' %}" class="header-link">{{ translations.weather }} ></a>
@@ -91,7 +91,7 @@
             </form>
         </div>
     </div>
-    <div class="sidebar-container">
+    <div class="sidebar-container exchange-rates-box">
         {% if exchange_rate_error_message %}
         <div class="alert-error">
             {{ exchange_rate_error_message }}
