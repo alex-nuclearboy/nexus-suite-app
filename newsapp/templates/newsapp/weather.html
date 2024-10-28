@@ -53,7 +53,7 @@
         </div>
     </div>
 
-    <div class="additional-details">
+    <div class="flex-container additional-details">
         <div class="detail">
             <span>
                 <img class="weather-icons" src="{% static 'newsapp/icons/wind.png' %}" alt="Wind">
@@ -157,7 +157,7 @@
                             {{ hour.pressure_mm }} {{ translations.mmhg }}
                         </div>
 
-                        <div style="margin: 12px;">{{ hour.humidity }}%</div>
+                        <div class="humidity">{{ hour.humidity }}%</div>
 
                         <div class="wind" data-wind-mps="{{ hour.wind_mps }}" data-wind-kph="{{ hour.wind_kph }}"
                             data-wind-mph="{{ hour.wind_mph }}" data-wind-dir="{{ hour.wind_dir }}"
