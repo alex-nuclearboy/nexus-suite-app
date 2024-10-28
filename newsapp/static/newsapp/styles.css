@@ -9,21 +9,36 @@
     color: crimson;
 }
 
-/* ====================== */
-/* Define Color Variables */
-/* ====================== */
+/* ======================= */
+/* Define Global Variables */
+/* ======================= */
 :root {
+    /* Color Variables */
     --color-primary: #212121;
     --color-secondary: #707070;
     --color-brand: #0466C8;
     --color-brand-dk: #023E7D;
-    --color-light: #fff;
+    --color-light: #ffffff;
     --color-bg-dark: #2f303a;
     --color-bg-light: #f5f4fa;
     --color-bg-blue: #001F54;
     --color-bg-gray: #f1f1f1;
     --color-border: #bdb4b4;
+
+    /* Shadow */
     --element-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+    /* Font Variables */
+    --font-family-base: "Roboto", sans-serif;
+    --font-family-brand: 'Raleway', sans-serif;
+    --font-size-base: 16px;
+    --font-size-lg: 24px;
+    --font-size-md: 20px;
+    --font-size-sm: 14px;
+    --font-weight-base: 400;
+    --font-weight-bold: 600;
+    --line-height: 1.5;
+    --letter-spacing: 0.42px;
 }
 
 /* ===================== */
@@ -32,11 +47,11 @@
 body {
     background-color: var(--color-light);
     color: var(--color-primary);
-    font-family: "Roboto", sans-serif;
-    font-size: 16px;
-    font-weight: 400;
-    letter-spacing: 0.42px;
-    line-height: 1.5;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-base);
+    letter-spacing: var(--letter-spacing);;
+    line-height: var(--line-height);
 }
 
 /* ===================== */
@@ -59,24 +74,24 @@ aside {
 /* ===================== */
 h1, h2 {
     color: var(--color-primary);
-    font-weight: 600;
+    font-weight: var(--font-weight-bold);
     margin: 0;
 }
 
 h1 {
-    font-size: 24px;
+    font-size: var(--font-size-lg);
     margin-bottom: 32px;
 }
 
 h2 {
-    font-size: 20px;
+    font-size: var(--font-size-md);
     margin-bottom: 16px;
 }
 
 h3 {
     color: var(--color-secondary);
-    font-size: 16px;
-    font-weight: 400;
+    font-size: var(--font-size-base);;
+    font-weight: var(--font-weight-base);
     margin: 0;
 }
 
@@ -92,16 +107,18 @@ h3 {
 }
 
 /* ===================== */
-/* Top Bar Styling       */
+/* Flex Container        */
 /* ===================== */
-.top-bar,
-.nav-bar {
+.flex-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.top-bar {
+/* ===================== */
+/* Top Bar Styling       */
+/* ===================== */
+header .top-bar {
     background-color: var(--color-bg-blue);
     padding: 10px 60px;
 }
@@ -109,18 +126,18 @@ h3 {
 .top-bar .date-time,
 .top-bar .language {
     color: var(--color-light);
-    font-size: 14px;
-    font-weight: 400;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-base);
     text-decoration: none;
 }
 
 .top-bar .language:hover {
     color: var(--color-brand);
-    font-weight: 600;
+    font-weight: var(--font-weight-bold);
     text-decoration: underline;
 }
 
-.nav-bar {
+header .nav-bar {
     background-color: var(--color-bg-light);
     padding: 20px 60px;
     box-shadow: var(--element-shadow);
@@ -128,9 +145,9 @@ h3 {
 
 .nav-bar .brand {
     color: var(--color-primary);
-    font-family: 'Raleway', sans-serif;
-    font-size: 20px;
-    font-weight: 600;
+    font-family: var(--font-family-brand);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-bold);
     text-decoration: none;
 }
 
@@ -144,15 +161,15 @@ h3 {
 
 .nav-bar .auth-links a {
     color: var(--color-primary);
-    font-size: 16px;
-    font-weight: 400;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-base);
     text-decoration: none;
     margin-left: 20px;
 }
 
 .nav-bar .auth-links a:hover {
     color: var(--color-brand);
-    font-weight: 600;
+    font-weight: var(--font-weight-bold);
 }
 
 /* ===================== */
@@ -162,11 +179,9 @@ h3 {
     background-color: var(--color-brand);
     color: var(--color-light);
     width: auto;
-    height: 40px;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.5;
-    padding: 4px 20px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    padding: 10px 20px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -202,6 +217,8 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 
 .sidebar-container-form {
     display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 .sidebar-container-form .form-group {
@@ -212,8 +229,7 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 .sidebar-container-form label {
     display: block;
     color: var(--color-primary);
-    font-size: 16px;
-    font-weight: 600;
+    font-weight: var(--font-weight-bold);
     margin: 0;
 }
 
@@ -224,13 +240,15 @@ transition: background-color 0.3s ease, transform 0.2s ease;
     color: var(--color-primary);
     border: 1px solid var(--color-border);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-sm);
+}
+
+.sidebar-container-form select {
     padding: 8px;
-    margin-bottom: 12px;
 }
 
 .sidebar-container-form input {
-    height: 24px;
+    padding: 10px;
 }
 
 /* ===================== */
@@ -262,6 +280,7 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 
 .news-time {
     color: var(--color-secondary);
+    font-size: var(--font-size-sm);
     width: 50px;
     flex-shrink: 0;
 }
@@ -274,7 +293,7 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 .news-content a {
     color: var(--color-primary);
     word-wrap: break-word;
-    font-size: 14px;
+    font-size: var(--font-size-sm);
     text-decoration: none;
 }
 
@@ -283,14 +302,13 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .news-content span {
-    font-size: 14px;
+    font-size: var(--font-size-sm);
     color: var(--color-secondary);
 }
 
 .view-more {
     color: var(--color-brand);
     display: block;
-    font-size: 14px;
     margin-top: 20px;
     text-align: right;
     text-decoration: underline;
@@ -301,13 +319,10 @@ transition: background-color 0.3s ease, transform 0.2s ease;
     text-decoration: none;
 }
 
-/*  */
+/* Weather Box */
 .weather-box .weather-header {
-    display: flex;
-    font-size: 20px;
-    font-weight: 600;
-    justify-content: space-between;
-    align-items: center;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-bold);
 }
 
 .weather-box .city_name {
@@ -315,9 +330,9 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .weather-box .weather-link {
-    font-size: 20px;
-    font-weight: 600;
     color: var(--color-brand);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-bold);    
     text-align: right;
     text-decoration: none;
 }
@@ -328,56 +343,55 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 
 .weather-box .time {
     color: var(--color-secondary);
-    font-weight: 400;
-    font-size: 14px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-base);
 }
 
-.weather-details .main-info {
+.weather-box .weather-details .main-info {
     display: flex;
     align-items: center;
 }
 
-.weather-details .main-info img {
+.weather-box .weather-details .main-info img {
     width: 80px;
     height: 80px;
     margin-right: 12px;
+    transition: transform 0.3s ease;
 }
 
-.weather-details .temperature {
-    font-size: 40px;
-    margin-bottom: 10px;
-    margin-right: 10px;
-    margin-left: 10px;
+.weather-box img:hover {
+    transform: scale(1.05);
 }
 
-.other-details {
+.weather-box .weather-details .condition {
+    color: var(--color-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    margin-top: 12px;
+}
+
+.weather-box .weather-details .other-details {
     display: flex;
     flex-direction: column;
 }
 
 .other-details p {
-    font-size: 14px;
-    font-weight: normal;
     color: var(--color-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-base);
     margin: 5px 0;
 }
 
 .other-details p strong {
-    font-size: 14px;
-    font-weight: bold;
     color: var(--color-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
 }
 
-.weather-details .condition {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-primary);
-    margin-top: 12px;
-}
-
-.exchange-rates-header {
-    font-size: 20px;
-    font-weight: 600;
+/* Exchange Rates Box */
+.exchange-rates-box .exchange-rates-header {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-bold);
     text-align: right;
     padding-bottom: 20px;
 }
@@ -393,7 +407,7 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 .exchange-rates-table th,
 .exchange-rates-table td {
     color: var(--color-secondary);
-    font-weight: 400;
+    font-weight: var(--font-weight-base);
     padding: 8px;
     text-align: center;
     border: none;
@@ -401,7 +415,7 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 
 .exchange-rates-table .rate-value {
     color: var(--color-primary);
-    font-weight: 600;
+    font-weight: var(--font-weight-bold);
 }
 
 .exchange-rates-table tr.odd {
@@ -412,16 +426,24 @@ transition: background-color 0.3s ease, transform 0.2s ease;
     background-color: var(--color-bg-gray);
 }
 
-.converter-box .converter-form {
+/* Converter */
+.converter-form {
+    display: block;
     flex-direction: column;
 }
 
-.converter-form .form-group {
-    margin-bottom: 12px;
+.converter-form select,
+.converter-form input {
+    margin-bottom: 16px;
 }
 
 .converter-form .converter-result {
     background-color: var(--color-bg-gray);
+}
+
+.converter-form .submit-button {
+    width: 100%;
+    height: 40px;
 }
 
 /* ===================== */
@@ -431,14 +453,10 @@ transition: background-color 0.3s ease, transform 0.2s ease;
     text-align: left;
 }
 
-.pressure-unit {
-    display: block;
-}
-
 .location-info p {
     color: var(--color-secondary);
-    font-size: 14px;
-    font-weight: 400;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-base);
     margin-top: 4px;
 }
 
@@ -451,6 +469,11 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 .weather-icon img {
     width: 100px;
     height: 100px;
+    transition: transform 0.3s ease;
+}
+
+.weather-icon img:hover {
+    transform: scale(1.05);
 }
 
 .weather-details {
@@ -465,7 +488,7 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 
 .temp-value {
     font-size: 40px;
-    font-weight: 600;
+    font-weight: var(--font-weight-bold);
     display: inline-flex;
     align-items: flex-start;
 }
@@ -474,39 +497,30 @@ transition: background-color 0.3s ease, transform 0.2s ease;
     font-size: 32px;
     vertical-align: super;
     margin-left: 2px;
-    margin-top: 2px;
 }
 
 .condition-feelslike {
     display: flex;
     flex-direction: column;
     align-items: left;
-    margin-left: 20px;
-    margin-right: 20px;
+    margin: 0 20px;
 }
 .condition-feelslike .condition {
     color: var(--color-primary);
-    font-size: 20px;
-    font-weight: 600;
-}
-
-.condition-feelslike .feelslike {
-    font-size: 16px;
-    color: var(--color-primary);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-bold);
 }
 
 .additional-details {
-    display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
     margin-bottom: 60px;
 }
 
 .detail {
     background-color: var(--color-light);
     flex: 1 1 12%;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
     text-align: left;
     padding: 10px 4px;
     margin: 5px;
@@ -514,9 +528,9 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 
 .detail span:first-child {
     display: block;
-    font-weight: 400;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-base);
     margin-bottom: 5px;
-    font-size: 14px;
 }
 
 .weather-icons {
@@ -531,9 +545,9 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .wind-direction .bi {
-    margin-left: 5px;
-    font-size: 14px;
     color: var(--color-primary);
+    font-size: var(--font-size-sm);
+    margin-left: 5px;
 }
 
 .sun-icons {
@@ -552,6 +566,7 @@ transition: background-color 0.3s ease, transform 0.2s ease;
     margin-bottom: 60px;
 }
 
+/* Forecast */
 .forecast-table {
     width: 100%;
     border-collapse: collapse;
@@ -559,15 +574,13 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 
 .forecast-table th,
 .forecast-table td {
-    padding-top: 16px;
-    padding-bottom: 16px;
     text-align: center;
     border: none;
+    padding: 16px 0;
 }
 
 .forecast-table .odd-column {
     background-color: var(--color-bg-gray);
-    text-align: center;
 }
 
 .forecast-table .even-column {
@@ -575,21 +588,26 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .forecast-table p {
-    margin-top: 0;
-    margin-bottom: 16px;
+    margin: 0 0 16px;
 }
 
-.forecast-table .time {
-    color: var(--color-secondary);
+.forecast-table img {
+    margin-top: 8px;
+    transition: transform 0.3s ease;
+}
+.forecast-table img:hover {
+    transform: scale(1.05);
 }
 
+.forecast-table .time,
 .forecast-table .date {
-    font-weight: bold;
+    font-weight: var(--font-weight-bold);
     margin: 0;
 }
 
 .forecast-table .day {
     color: var(--color-secondary);
+    font-size: var(--font-size-sm);
 }
 
 .forecast-details {
@@ -600,49 +618,39 @@ transition: background-color 0.3s ease, transform 0.2s ease;
     margin: 20px 0;
 }
 
-.forecast-temp-value,
-.forecast-temp-unit {
-    color: var(--color-primary);
-}
-
 .forecast-temp-value {
+    color: var(--color-primary);
     font-size: 24px;
-    font-weight: 600;
+    font-weight: var(--font-weight-bold);
     display: inline-flex;
     align-items: flex-start;
-    margin-bottom: 16px;
 }
 
 .forecast-temp-unit {
-    font-size: 20px;
+    color: var(--color-primary);
+    font-size: var(--font-size-md);
     vertical-align: super;
     margin-left: 2px;
     margin-top: 2px;
 }
 
 .min-temp, .max-temp {
+    flex: 1;
     color: var(--color-secondary);
-    flex: 1; 
+    font-size: var(--font-size-sm);
     text-align: center;
 }
 
-/*  */
+.forecast-table .pressure,
+.forecast-table .humidity {
+    margin: 12px 0;
+}
+
+/* Unit Selection */
 .weather-form {
-    display: flex;
-    align-items: center;
-    gap: 32px;
+    gap: 40px;
 }
 
-.weather-form .form-group {
-    flex: 1;
-}
-
-.weather-form .form-group input {
-    height: 24px;
-    margin-top: 0;
-}
-
-/*  */
 .unit-selection {
     display: flex;
     flex-direction: column;
@@ -651,13 +659,13 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 .unit-option {
     display: flex;
     flex-direction: column;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .unit-radio-group {
     display: flex;
-    gap: 8px;
     align-items: center;
+    gap: 8px;
 }
 
 .unit-radio-group input[type="radio"] {
@@ -667,21 +675,6 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 /* ===================== */
 /* News Page             */
 /* ===================== */
-.news-form {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.news-form .form-group {
-    flex: 1;
-}
-
-.news-form .form-group select {
-    height: 40px;
-    margin-top: 0;
-}
-
 .category-list {
     list-style-type: none;
     padding-left: 0;
