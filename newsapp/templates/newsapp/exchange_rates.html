@@ -41,7 +41,7 @@
 </main>
 
 <aside>
-    <section class="sidebar-container converter-box">
+    <section class="sidebar-container">
         <h2>{{ translations.currency_converter }}</h2>
         <form method="POST" action="{% url 'newsapp:convert_currency' %}" class="sidebar-container-form converter-form">
             {% csrf_token %}
