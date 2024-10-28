@@ -20,7 +20,7 @@
 
 <body>
     <header class="header">
-        <div class="top-bar">
+        <div class="top-bar flex-container">
             <div class="date-time">
                 <span>{{ current_time }} - {{ current_date }}</span>
             </div>
@@ -32,7 +32,7 @@
                 {% endif %}
             </a>
         </div>
-        <nav class="nav-bar">
+        <nav class="nav-bar flex-container">
             <a class="brand" href="{% url 'newsapp:index' %}">
                 <span class="accent">Nexus</span>Suite
             </a>
