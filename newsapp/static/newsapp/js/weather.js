@@ -40,10 +40,8 @@ document.addEventListener("DOMContentLoaded", function() {
             const tempC = el.getAttribute('data-temp-c');
             const tempF = el.getAttribute('data-temp-f');
             if (el.classList.contains('temp-value')) {
-                // Застосовуємо клас для головного елемента
                 el.innerHTML = (temperatureUnit === 'c') ? `${tempC}<sup class="temp-unit">°C</sup>` : `${tempF}<sup class="temp-unit">°F</sup>`;
             } else {
-                // Застосовуємо клас для елементів прогнозу
                 el.innerHTML = (temperatureUnit === 'c') ? `${tempC}<sup class="forecast-temp-unit">°C</sup>` : `${tempF}<sup class="forecast-temp-unit">°F</sup>`;
             }
             // el.innerHTML = (temperatureUnit === 'c') ? `${tempC}<sup class="temp-unit forecast-temp-unit">°C</sup>` : `${tempF}<sup class="temp-unit forecast-temp-unit">°F</sup>`;
