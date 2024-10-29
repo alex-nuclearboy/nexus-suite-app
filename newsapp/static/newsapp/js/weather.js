@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const pressureMB = el.getAttribute('data-pressure-mb');
             const transMMHG = el.getAttribute('data-trans-mmhg');
             const transMB = el.getAttribute('data-trans-mb');
-            el.textContent = (pressureUnit === 'mmhg') ? `${pressureMMHG} ${transMMHG}` : `${pressureMB}  ${transMB}`;
+            el.innerHTML = (pressureUnit === 'mmhg') ? `${pressureMMHG} ${transMMHG}` : `${pressureMB}  ${transMB}`;
         });
 
         // Update wind

@@ -59,7 +59,10 @@
                 <img class="weather-icons" src="{% static 'newsapp/icons/wind.png' %}" alt="Wind">
                 {{ translations.wind }}
             </span>
-            <span class="wind" data-wind-mps="{{ weather_data.current.wind_mps }}" data-wind-kph="{{ weather_data.current.wind_kph }}" data-wind-mph="{{ weather_data.current.wind_mph }}" data-wind-dir="{{ weather_data.current.wind_dir }}" data-trans-wind="{{ translations.wind }}" data-trans-mps="{{ translations.mps }}" data-trans-kph="{{ translations.kph }}" data-trans-mph="{{ translations.mph }}">
+            <span class="wind" data-wind-mps="{{ weather_data.current.wind_mps }}" data-wind-kph="{{ weather_data.current.wind_kph|safe }}"
+                data-wind-mph="{{ weather_data.current.wind_mph|safe }}" data-wind-dir="{{ weather_data.current.wind_dir }}"
+                data-trans-wind="{{ translations.wind }}"  data-trans-mps="{{ translations.mps }}"
+                data-trans-kph="{{ translations.kph|safe }}" data-trans-mph="{{ translations.mph|safe }}">
                 <i class="bi {{ weather_data.current.wind_dir }}"></i> {{ weather_data.current.wind_mps }} {{ translations.mps }}
             </span>
         </div>
@@ -77,9 +80,9 @@
             </span>
             <span class="pressure" data-pressure-mmhg="{{ weather_data.current.pressure_mm }}"
                 data-pressure-mb="{{ weather_data.current.pressure_mb }}"
-                data-trans-pressure="{{ translations.pressure }}" data-trans-mmhg="{{ translations.mmhg }}"
+                data-trans-pressure="{{ translations.pressure }}" data-trans-mmhg="{{ translations.mmhg|safe }}"
                 data-trans-mb="{{ translations.mb }}">
-                {{ weather_data.current.pressure_mm }} {{ translations.mmhg }}
+                {{ weather_data.current.pressure_mm }} {{ translations.mmhg|safe }}
             </span>
         </div>
         <div class="detail">
@@ -152,17 +155,17 @@
                         </div>
 
                         <div class="pressure" data-pressure-mmhg="{{ hour.pressure_mm }}"
-                            data-pressure-mb="{{ hour.pressure_mb }}" data-trans-mmhg="{{ translations.mmhg }}"
+                            data-pressure-mb="{{ hour.pressure_mb }}" data-trans-mmhg="{{ translations.mmhg|safe }}"
                             data-trans-mb="{{ translations.mb }}">
-                            {{ hour.pressure_mm }} {{ translations.mmhg }}
+                            {{ hour.pressure_mm }} {{ translations.mmhg|safe }}
                         </div>
 
                         <div class="humidity">{{ hour.humidity }}%</div>
 
-                        <div class="wind" data-wind-mps="{{ hour.wind_mps }}" data-wind-kph="{{ hour.wind_kph }}"
-                            data-wind-mph="{{ hour.wind_mph }}" data-wind-dir="{{ hour.wind_dir }}"
+                        <div class="wind" data-wind-mps="{{ hour.wind_mps }}" data-wind-kph="{{ hour.wind_kph|safe }}"
+                            data-wind-mph="{{ hour.wind_mph|safe }}" data-wind-dir="{{ hour.wind_dir }}"
                             data-trans-wind="{{ translations.wind }}" data-trans-mps="{{ translations.mps }}"
-                            data-trans-kph="{{ translations.kph }}" data-trans-mph="{{ translations.mph }}">
+                            data-trans-kph="{{ translations.kph|safe }}" data-trans-mph="{{ translations.mph|safe }}">
                             <i class="bi {{ hour.wind_dir }}"></i> {{ hour.wind_mps }} {{ translations.mps }}
                         </div>
                     </td>
@@ -247,7 +250,7 @@
                 <label><b>{{ translations.pressure }}:</b></label>
                 <div class="unit-radio-group">
                     <input type="radio" id="pressure-mmhg" name="pressure-unit" value="mmhg" checked>
-                    <label for="pressure-mmhg">{{ translations.mmhg }}</label>
+                    <label for="pressure-mmhg">{{ translations.mmhg|safe }}</label>
                     <input type="radio" id="pressure-mb" name="pressure-unit" value="mb">
                     <label for="pressure-mb">{{ translations.mb }}</label>
                 </div>
@@ -258,9 +261,9 @@
                     <input type="radio" id="wind-mps" name="wind-unit" value="mps" checked>
                     <label for="wind-mps">{{ translations.mps }}</label>
                     <input type="radio" id="wind-kph" name="wind-unit" value="kph">
-                    <label for="wind-kph">{{ translations.kph }}</label>
+                    <label for="wind-kph">{{ translations.kph|safe }}</label>
                     <input type="radio" id="wind-mph" name="wind-unit" value="mph">
-                    <label for="wind-mph">{{ translations.mph }}</label>
+                    <label for="wind-mph">{{ translations.mph|safe }}</label>
                 </div>
             </div>
             <div class="unit-option">
