@@ -67,8 +67,13 @@ class MainView(BaseView):
 
         weather_error_message = None
         exchange_rate_error_message = None
+
         default_city = 'Kyiv' if language == 'en' else 'Київ'
-        city = request.GET.get('city', default_city)
+        city = request.session.get('selected_city', default_city)
+        if 'city' in request.GET:
+            city = request.GET['city']
+            await sync_to_async(request.session.__setitem__)('selected_city',
+                                                             city)
 
         country = request.GET.get(
             'country', await sync_to_async(request.session.get)(
@@ -161,7 +166,11 @@ class WeatherView(BaseView):
 
         error_message = None
         default_city = 'Kyiv' if language == 'en' else 'Київ'
-        city = request.GET.get('city', default_city)
+        city = request.session.get('selected_city', default_city)
+        if 'city' in request.GET:
+            city = request.GET['city']
+            await sync_to_async(request.session.__setitem__)('selected_city',
+                                                             city)
 
         try:
             weather_data = await fetch_weather_data(
