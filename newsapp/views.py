@@ -112,6 +112,10 @@ class MainView(BaseView):
             logger.error(f"Weather retrieval error for {city}: {str(e)}")
             weather_data = None
 
+        if weather_data is None:
+            await sync_to_async(request.session.__setitem__)('selected_city',
+                                                             default_city)
+
         try:
             exchange_rates = await fetch_exchange_rates(
                 filter_currencies={'USD', 'EUR', 'PLN'}
@@ -201,6 +205,10 @@ class WeatherView(BaseView):
             weather_in_text = transl['weather_in']
             formatted_local_update_time = 'N/A'
             formatted_user_update_time = 'N/A'
+
+            # Set default city if weather data cannot be retrieved
+            await sync_to_async(request.session.__setitem__)('selected_city',
+                                                             default_city)
 
         context.update({
             'error_message': error_message,
