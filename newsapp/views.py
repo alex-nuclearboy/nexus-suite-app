@@ -27,18 +27,34 @@ logger = logging.getLogger(__name__)
 
 
 class BaseView(View):
+    """
+    Base class view that includes common context setup, like date, time,
+    and translations, to be used across various views.
+    """
     async def get_common_context(self, request):
+        """
+        Forms and returns a common context dictionary for all views.
+
+        Parameters:
+        request: User's session request object containing session data.
+
+        Returns:
+        dict: Dictionary with general data such as language, timezone,
+              current date and time, and translations.
+        """
         language = await sync_to_async(get_language)(request)
         transl = translations.get(language, translations['en'])
 
         await sync_to_async(set_timezone)(request)
 
+        # Get user's timezone and current time
         timezone_str = (
             await sync_to_async(request.session.get)('django_timezone', 'UTC')
         )
         user_timezone = pytz.timezone(timezone_str)
         now = timezone.now().astimezone(user_timezone)
 
+        # Translate the date and time
         translated_day, translated_month = (
             await sync_to_async(get_translated_day_and_month)(
                 now, language, 'full'
@@ -59,7 +75,22 @@ class BaseView(View):
 
 
 class MainView(BaseView):
+    """
+    Main view to handle the homepage, displaying weather,
+    exchange rates, and news.
+    """
+
     async def get(self, request):
+        """
+        Handles the GET request for rendering the homepage with weather,
+        exchange rates, and news data.
+
+        Parameters:
+        request: User's session request object containing session data.
+
+        Returns:
+        HttpResponse: Rendered homepage with the fetched context.
+        """
         context = await self.get_common_context(request)
         language = context['language']
         transl = context['translations']
@@ -101,6 +132,7 @@ class MainView(BaseView):
             else COUNTRIES.get(country, 'Unknown')
         )
 
+        # Fetch weather data
         try:
             weather_data = await fetch_weather_data(
                 city, transl, language, data_type='current'
@@ -116,6 +148,7 @@ class MainView(BaseView):
             await sync_to_async(request.session.__setitem__)('selected_city',
                                                              default_city)
 
+        # Fetch exchange rates
         try:
             exchange_rates = await fetch_exchange_rates(
                 filter_currencies={'USD', 'EUR', 'PLN'}
@@ -127,6 +160,7 @@ class MainView(BaseView):
                 'unable_to_fetch_exchange_rates'
             ]
 
+        # Fetch news articles for the main page
         try:
             general_news = await fetch_news_by_category('general',
                                                         country, transl)
@@ -162,7 +196,21 @@ class MainView(BaseView):
 
 
 class WeatherView(BaseView):
+    """
+    View to handle weather data requests for a specific location.
+    """
+
     async def get(self, request):
+        """
+        Handles the GET request for fetching and displaying
+        detailed weather data.
+
+        Parameters:
+        request: User's request containing parameters like location.
+
+        Returns:
+        HttpResponse: Rendered page with detailed weather information.
+        """
         context = await self.get_common_context(request)
         language = context['language']
         transl = context['translations']
@@ -227,7 +275,20 @@ class WeatherView(BaseView):
 
 
 class ExchangeRatesView(BaseView):
+    """
+    View to handle requests for displaying current exchange rates.
+    """
+
     async def get(self, request):
+        """
+        Handles the GET request for showing updated exchange rates.
+
+        Parameters:
+        request: User's request object.
+
+        Returns:
+        HttpResponse: Rendered page with current exchange rate information.
+        """
         context = await self.get_common_context(request)
         language = context['language']
         transl = context['translations']
@@ -267,7 +328,21 @@ class ExchangeRatesView(BaseView):
 
 
 class ConvertCurrencyView(BaseView):
+    """
+    View to handle currency conversion requests.
+    """
+
     async def post(self, request):
+        """
+        Handles the GET request for converting one currency to another.
+
+        Parameters:
+        request: User's request containing 'from_currency', 'to_currency',
+                 and 'amount'.
+
+        Returns:
+        HttpResponse: Rendered page with converted currency value.
+        """
         context = await self.get_common_context(request)
         transl = context['translations']
         if request.method == 'POST':
@@ -317,7 +392,21 @@ class ConvertCurrencyView(BaseView):
 
 
 class NewsView(BaseView):
+    """
+    View to handle requests for displaying news articles by category.
+    """
+
     async def get(self, request, category):
+        """
+        Handles the GET request for fetching and displaying news articles
+        in a specific category.
+
+        Parameters:
+        request: User's request with 'category' parameter for filtering news.
+
+        Returns:
+        HttpResponse: Rendered page with a list of news articles.
+        """
         context = await self.get_common_context(request)
         language = context['language']
         transl = context['translations']
