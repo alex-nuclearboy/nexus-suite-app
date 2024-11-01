@@ -100,11 +100,18 @@ class MainView(BaseView):
         exchange_rate_error_message = None
 
         default_city = 'Kyiv' if language == 'en' else 'Київ'
-        city = request.session.get('selected_city', default_city)
-        if 'city' in request.GET:
-            city = request.GET['city']
-            await sync_to_async(request.session.__setitem__)('selected_city',
-                                                             city)
+        current_city = request.session.get('selected_city', default_city)
+
+        # Update city to default when language is switched
+        if 'language' in request.GET:
+            request.session['selected_city'] = default_city
+            city = default_city
+        else:
+            city = request.GET.get('city', current_city)
+            if city != current_city:
+                await sync_to_async(request.session.__setitem__)(
+                    'selected_city', city
+                )
 
         country = request.GET.get(
             'country', await sync_to_async(request.session.get)(
