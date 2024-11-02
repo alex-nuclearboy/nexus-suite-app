@@ -1,0 +1,57 @@
+{% extends "newsapp/base.html" %}
+{% load static %}
+
+{% block title %}{{ translations.sign_up }} {% endblock %}
+
+{% block content %}
+
+<div>
+    <h2>{{ translations.sign_up }}</h2>
+</div>
+
+<form method="post" action="{% url 'users:signup' %}">
+    {% csrf_token %}
+    <div>
+        <label>{{ translations.username }}<span style="color: crimson;">*</span>:
+            {{ form.username }}
+        </label>
+    </div>
+    <br>
+    <div>
+        <label>{{ translations.email }}:
+            {{ form.email }}
+        </label>
+    </div>
+    <br>
+    <div>
+        <label>{{ translations.first_name }}:
+            {{ form.first_name }}
+        </label>
+    </div>
+    <br>
+    <div>
+        <label>{{ translations.last_name }}:
+            {{ form.last_name }}
+        </label>
+    </div>
+    <br>
+    <div>
+        <label>{{ translations.password }}<span style="color: crimson;">*</span>:
+            {{ form.password1 }}
+        </label>
+    </div>
+    <br>
+    <div>
+        <label>{{ translations.password_conf }}<span style="color: crimson;">*</span>:
+            {{ form.password2 }}
+        </label>
+    </div>
+    <div class="grid">
+        <button type="submit">{{ translations.sign_up }}</button>
+        <button type="reset">{{ translations.reset }}</button>
+    </div>
+</form>
+
+<p class="note"><span style="color: crimson;">*</span> {{ translations.required_note }}</p>
+
+{% endblock %}
