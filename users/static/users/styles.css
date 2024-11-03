@@ -1,0 +1,85 @@
+/* Загальні стилі для контейнера форми */
+form {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Стилі для заголовка */
+h2 {
+    text-align: center;
+    color: #333;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Стилі для елементів форми */
+form div {
+    margin-bottom: 15px;
+}
+
+form label {
+    display: block;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Стиль для кнопок */
+.grid button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.grid button[type="submit"] {
+    background-color: #4CAF50;
+    color: #fff;
+    margin-right: 10px;
+}
+
+.grid button[type="reset"] {
+    background-color: #f44336;
+    color: #fff;
+}
+
+.grid button:hover {
+    opacity: 0.9;
+}
+
+/* Стилі для примітки */
+.note {
+    font-size: 14px;
+    color: #777;
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Червона зірочка для обов'язкових полів */
+label span {
+    color: crimson;
+    font-size: 1.1em;
+}
+
+/* Додатковий стиль для повідомлень про помилки */
+form span {
+    color: crimson;
+    font-size: 14px;
+    margin-top: 5px;
+    display: block;
+}
