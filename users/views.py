@@ -1,7 +1,10 @@
 from django.views import View
-from django.shortcuts import render, redirect
 from django.utils import timezone
-from django.contrib.auth import authenticate, login
+from django.utils.decorators import method_decorator
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 from asgiref.sync import sync_to_async
 import pytz
 
@@ -68,7 +71,7 @@ class SignupUserView(BaseUserView):
     """
     form_class = RegisterForm
     template_name = 'users/signup.html'
-    success_url = 'newsapp:index'
+    success_url = 'users:login'
 
     async def get(self, request):
         """
@@ -119,12 +122,19 @@ class SignupUserView(BaseUserView):
             request.POST, language=await sync_to_async(get_language)(request)
         )
 
+        language = await sync_to_async(get_language)(request)
+        transl = translations.get(language, translations['en'])
+
         if await sync_to_async(form.is_valid)():
             # Save the form and redirect on success
             await sync_to_async(form.save)()
+            await sync_to_async(messages.success)(
+                request, transl['signup_success']
+            )
             return redirect(self.success_url)
 
         # If the form is invalid, re-render the form with errors
+        form.add_error(None, transl['signup_error'])
         context = await self.get_common_context(request)
         context["form"] = form
         return render(request, self.template_name, context)
@@ -188,6 +198,9 @@ class LoginUserView(BaseUserView):
             request.POST, language=await sync_to_async(get_language)(request)
         )
 
+        language = await sync_to_async(get_language)(request)
+        transl = translations.get(language, translations['en'])
+
         if await sync_to_async(form.is_valid)():
             # Authenticate the user
             username = form.cleaned_data['username']
@@ -199,12 +212,47 @@ class LoginUserView(BaseUserView):
             if user is not None:
                 # Log in the user
                 await sync_to_async(login)(request, user)
+                await sync_to_async(messages.success)(
+                    request, transl['login_success']
+                )
                 return redirect(self.success_url)
 
             # If credentials are invalid, add an error message
-            form.add_error(None, "Invalid username or password.")
+            form.add_error(None, transl['login_error'])
 
         # If the form is invalid, re-render the form with errors
         context = await self.get_common_context(request)
         context["form"] = form
         return render(request, self.template_name, context)
+
+
+class LogoutUserView(BaseUserView):
+    """
+    Asynchronous view for handling user logout.
+    """
+
+    @method_decorator(login_required)
+    async def get(self, request):
+        """
+        Handles GET requests for logging out the user.
+
+        Parameters:
+        request: HTTP GET request object.
+
+        Returns:
+        HTTPResponse: Redirects to the home page after successful logout,
+                      displaying a success message.
+        """
+        language = await sync_to_async(get_language)(request)
+        transl = translations.get(language, translations['en'])
+
+        # Log out the user
+        await sync_to_async(logout)(request)
+
+        # Display a success message
+        await sync_to_async(messages.success)(
+            request, transl['logout_success']
+        )
+        request.session['language'] = language
+
+        return redirect('newsapp:index')
