@@ -46,6 +46,12 @@ form input[type="password"]:focus {
     border-color: var(--color-primary);
 }
 
+.checkbox-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-base);
+    cursor: pointer;
+}
+
 .grid {
     display: flex;
     gap: 20px;
