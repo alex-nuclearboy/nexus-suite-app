@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="{{ request.session.language|default:'en' }}">
+
 <head>
-    <meta charset="UTF-8"/>
+    <meta charset="UTF-8" />
     <title>{% block title %}Personal Assistant App{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Roboto:wght@400;500;700;900&display=swap"
-      rel="stylesheet"
-    />
+        href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Roboto:wght@400;500;700;900&display=swap"
+        rel="stylesheet" />
     <!-- <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"/> -->
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'newsapp/styles.css' %}">
@@ -26,9 +26,9 @@
             </div>
             <a href="?lang={% if request.session.language == 'en' %}uk{% else %}en{% endif %}" class="language">
                 {% if request.session.language == 'en' %}
-                    Українською
+                Українською
                 {% else %}
-                    English
+                English
                 {% endif %}
             </a>
         </div>
@@ -38,8 +38,8 @@
             </a>
 
             <div class="auth-links">
-                <a href="{% url 'newsapp:index' %}">{{ translations.sign_up }}</a>
-                <a href="{% url 'newsapp:index' %}">{{ translations.login }}</a>
+                <a href="{% url 'users:signup' %}">{{ translations.sign_up }}</a>
+                <a href="{% url 'users:login' %}">{{ translations.login }}</a>
             </div>
         </nav>
     </header>
@@ -49,4 +49,5 @@
     </div>
 
 </body>
+
 </html>
