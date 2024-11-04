@@ -1,0 +1,41 @@
+{% extends "newsapp/base.html" %}
+{% load static %}
+
+{% block title %} {{ translations.login }} {% endblock %}
+
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{% static 'users/styles.css' %}" />
+{% endblock %}
+
+{% block content %}
+<main>
+    <div>
+        <h1>{{ translations.login }}</h1>
+    </div>
+
+    <form method="post" action="{% url 'users:login' %}">
+        {% csrf_token %}
+
+        <div class="form-field">
+            <label for="id_username_or_email">{{ translations.username_or_email }}<span
+                    style="color: crimson">*</span>:</label>
+            {{ form.username_or_email }}
+        </div>
+
+        <div class="form-field">
+            <label for="id_password">{{ translations.password }}<span style="color: crimson">*</span>:</label>
+            {{ form.password }}
+        </div>
+
+        <div class="grid">
+            <button type="submit">{{ translations.login }}</button>
+            <button type="reset">{{ translations.reset }}</button>
+        </div>
+
+        <p class="note">
+            <span style="color: crimson">*</span> {{ translations.required_note|safe }}
+        </p>
+    </form>
+
+</main>
+{% endblock %}
