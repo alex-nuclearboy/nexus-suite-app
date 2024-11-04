@@ -173,12 +173,12 @@ header .nav-bar {
 }
 
 /* ===================== */
-/* Submit Button         */
+/* Button Styles         */
 /* ===================== */
-.submit-button {
-    background-color: var(--color-brand);
-    color: var(--color-light);
+button[type="submit"],
+button[type="reset"] {
     width: auto;
+    color: var(--color-light);
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-bold);
     padding: 10px 20px;
@@ -187,18 +187,40 @@ header .nav-bar {
     cursor: pointer;
     display: flex;
     align-items: center;
-    align-self: stretch;
     justify-content: center;
     margin: 0;
     box-shadow: var(--element-shadow);
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.submit-button:hover {
-background-color: var(--color-brand-dk);
-transition: background-color 0.3s ease, transform 0.2s ease;
+/* ===================== */
+/* Submit Button         */
+/* ===================== */
+button[type="submit"] {
+    background-color: var(--color-brand);
 }
 
-.submit-button:focus {
+button[type="submit"]:hover {
+    background-color: var(--color-brand-dk);
+}
+
+button[type="submit"]:focus {
+    outline: 2px solid var(--color-brand-dk);
+    outline-offset: 2px;
+}
+
+/* ===================== */
+/* Reset Button          */
+/* ===================== */
+button[type="reset"] {
+    background-color: var(--color-bg-dark);
+}
+
+button[type="reset"]:hover {
+    background-color: var(--color-primary);
+}
+
+button[type="reset"]:focus {
     outline: 2px solid var(--color-brand-dk);
     outline-offset: 2px;
 }
@@ -208,7 +230,7 @@ transition: background-color 0.3s ease, transform 0.2s ease;
 /* ===================== */
 .sidebar-container {
     background-color: var(--color-bg-light);
-    border: 1px solid none;
+    border: none;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 40px;
