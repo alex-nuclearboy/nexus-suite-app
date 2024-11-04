@@ -2,6 +2,7 @@ translations = {
     'en': {
         "sign_up": "Sign Up",
         "login": "Login",
+        "logout": "Logout",
         "reset": "Reset",
         "username": "Username",
         "email": "E-mail",
@@ -27,8 +28,9 @@ translations = {
         "invalid_credentials": "Invalid username or password.",
     },
     'uk': {
-        "sign_up": "Реєстрація",
-        "login": "Вхід",
+        "sign_up": "Зареєструватися",
+        "login": "Увійти",
+        "logout": "Вийти",
         "reset": "Скинути",
         "username": "Ім'я користувача",
         "email": "Електронна пошта",
