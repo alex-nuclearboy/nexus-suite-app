@@ -7,6 +7,10 @@
 <link rel="stylesheet" type="text/css" href="{% static 'users/styles.css' %}" />
 {% endblock %}
 
+{% block script %}
+<script src="{% static 'users/js/password.js' %}" defer></script>
+{% endblock %}
+
 {% block content %}
 <main>
     <div>
@@ -25,6 +29,10 @@
         <div class="form-field">
             <label for="id_password">{{ translations.password }}<span style="color: crimson">*</span>:</label>
             {{ form.password }}
+            <label>
+                <input type="checkbox" class="toggle-password" data-target="password">
+                <span class="checkbox-label">{{ translations.show_password }}</span>
+            </label>
         </div>
 
         <div class="grid">
