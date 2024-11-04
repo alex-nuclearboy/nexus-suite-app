@@ -69,14 +69,9 @@ class RegisterForm(UserCreationForm):
 
 
 class LoginForm(AuthenticationForm):
-    username_or_email = forms.CharField(max_length=100, required=True,
-                                        widget=forms.TextInput(attrs={
-                                            'placeholder': '',
-                                        }))
+    username_or_email = forms.CharField(max_length=100, required=True)
     password = forms.CharField(max_length=50, required=True,
-                               widget=forms.PasswordInput(attrs={
-                                   'placeholder': '',
-                               }))
+                               widget=forms.PasswordInput())
 
     class Meta:
         fields = ['username_or_email', 'password']
