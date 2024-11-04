@@ -1,61 +1,59 @@
 {% extends "newsapp/base.html" %}
 {% load static %}
 
-{% block title %}{{ translations.sign_up }} {% endblock %}
+{% block title %} {{ translations.sign_up }} {% endblock %}
 
 {% block style %}
-    <link rel="stylesheet" type="text/css" href="{% static 'users/styles.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'users/styles.css' %}" />
 {% endblock %}
 
 {% block content %}
-
-<div>
-    <h2>{{ translations.sign_up }}</h2>
-</div>
-
-<form method="post" action="{% url 'users:signup' %}">
-    {% csrf_token %}
+<main>
     <div>
-        <label>{{ translations.username }}<span style="color: crimson;">*</span>:
+        <h1>{{ translations.sign_up }}</h1>
+    </div>
+
+    <form method="post" action="{% url 'users:signup' %}">
+        {% csrf_token %}
+
+        <div class="form-field">
+            <label for="id_username">{{ translations.username }}<span style="color: crimson">*</span>:</label>
             {{ form.username }}
-        </label>
-    </div>
-    <br>
-    <div>
-        <label>{{ translations.email }}:
+        </div>
+
+        <div class="form-field">
+            <label for="id_email">{{ translations.email }}:</label>
             {{ form.email }}
-        </label>
-    </div>
-    <br>
-    <div>
-        <label>{{ translations.first_name }}:
+        </div>
+
+        <div class="form-field">
+            <label for="id_first_name">{{ translations.first_name }}:</label>
             {{ form.first_name }}
-        </label>
-    </div>
-    <br>
-    <div>
-        <label>{{ translations.last_name }}:
+        </div>
+
+        <div class="form-field">
+            <label for="id_last_name">{{ translations.last_name }}:</label>
             {{ form.last_name }}
-        </label>
-    </div>
-    <br>
-    <div>
-        <label>{{ translations.password }}<span style="color: crimson;">*</span>:
+        </div>
+
+        <div class="form-field">
+            <label for="id_password1">{{ translations.password }}<span style="color: crimson">*</span>:</label>
             {{ form.password1 }}
-        </label>
-    </div>
-    <br>
-    <div>
-        <label>{{ translations.password_conf }}<span style="color: crimson;">*</span>:
+        </div>
+
+        <div class="form-field">
+            <label for="id_password2">{{ translations.password_conf }}<span style="color: crimson">*</span>:</label>
             {{ form.password2 }}
-        </label>
-    </div>
-    <div class="grid">
-        <button type="submit">{{ translations.sign_up }}</button>
-        <button type="reset">{{ translations.reset }}</button>
-    </div>
-</form>
+        </div>
 
-<p class="note"><span style="color: crimson;">*</span> {{ translations.required_note }}</p>
+        <div class="grid button-group">
+            <button type="submit">{{ translations.sign_up }}</button>
+            <button type="reset">{{ translations.reset }}</button>
+        </div>
+    </form>
 
+    <p class="note">
+        <span style="color: crimson">*</span> {{ translations.required_note|safe }}
+    </p>
+</main>
 {% endblock %}

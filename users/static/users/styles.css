@@ -1,85 +1,66 @@
-/* Загальні стилі для контейнера форми */
+/* ======================== */
+/* Registration Page Styles */
+/* ======================== */
+
 form {
-    max-width: 500px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #f9f9f9;
+    background-color: var(--color-bg-light);
+    border: none;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 40px;
+    box-shadow: var(--element-shadow);
 }
 
-/* Стилі для заголовка */
-h2 {
-    text-align: center;
-    color: #333;
-    font-family: 'Roboto', sans-serif;
+.form-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
 }
 
-/* Стилі для елементів форми */
-form div {
-    margin-bottom: 15px;
+.form-field label {
+    color: var(--color-primary);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: 4px;
 }
 
-form label {
-    display: block;
-    font-weight: 600;
-    color: #555;
-    margin-bottom: 5px;
-}
-
+/* Input fields styling */
 form input[type="text"],
 form input[type="email"],
 form input[type="password"] {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 16px;
+    background-color: var(--color-light);
+    color: var(--color-primary);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    box-sizing: border-box;
+    outline: none;
 }
 
-/* Стиль для кнопок */
-.grid button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
+form input[type="text"]:focus,
+form input[type="email"]:focus,
+form input[type="password"]:focus {
+    border-color: var(--color-primary);
 }
 
-.grid button[type="submit"] {
-    background-color: #4CAF50;
-    color: #fff;
-    margin-right: 10px;
-}
-
-.grid button[type="reset"] {
-    background-color: #f44336;
-    color: #fff;
-}
-
-.grid button:hover {
-    opacity: 0.9;
-}
-
-/* Стилі для примітки */
-.note {
-    font-size: 14px;
-    color: #777;
-    text-align: center;
+.grid {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
     margin-top: 20px;
 }
 
-/* Червона зірочка для обов'язкових полів */
-label span {
-    color: crimson;
-    font-size: 1.1em;
+.grid button {
+    flex: 1;
 }
 
-/* Додатковий стиль для повідомлень про помилки */
-form span {
-    color: crimson;
-    font-size: 14px;
-    margin-top: 5px;
-    display: block;
+/* Note styling */
+.note {
+    color: var(--color-secondary);
+    font-size: var(--font-size-sm);
+    text-align: center;
+    margin-top: 20px;
 }
