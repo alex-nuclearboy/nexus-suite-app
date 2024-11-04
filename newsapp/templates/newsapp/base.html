@@ -38,8 +38,12 @@
             </a>
 
             <div class="auth-links">
+                {% if request.user.is_authenticated %}
+                <a href="{% url 'users:logout' %}">{{ translations.logout }}</a>
+                {% else %}
                 <a href="{% url 'users:signup' %}">{{ translations.sign_up }}</a>
                 <a href="{% url 'users:login' %}">{{ translations.login }}</a>
+                {% endif %}
             </div>
         </nav>
     </header>
