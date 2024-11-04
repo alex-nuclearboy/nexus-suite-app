@@ -1,6 +1,7 @@
 from django.views import View
 from django.shortcuts import render, redirect
 from django.utils import timezone
+from django.contrib.auth import authenticate, login
 from asgiref.sync import sync_to_async
 import pytz
 
@@ -9,7 +10,7 @@ from newsapp.utils.utils import (
 )
 from .utils.translations import translations
 
-from .forms import RegisterForm
+from .forms import RegisterForm, LoginForm
 
 
 class BaseUserView(View):
@@ -62,7 +63,7 @@ class BaseUserView(View):
 
 class SignupUserView(BaseUserView):
     """
-    Asynchronous view for handling user signup, utilizing the BaseUserView to
+    Asynchronous view for handling user signup, using the BaseUserView to
     inherit shared context and common utilities.
     """
     form_class = RegisterForm
@@ -122,6 +123,86 @@ class SignupUserView(BaseUserView):
             # Save the form and redirect on success
             await sync_to_async(form.save)()
             return redirect(self.success_url)
+
+        # If the form is invalid, re-render the form with errors
+        context = await self.get_common_context(request)
+        context["form"] = form
+        return render(request, self.template_name, context)
+
+
+class LoginUserView(BaseUserView):
+    """
+    Asynchronous view for handling user login, using the BaseUserView to
+    inherit shared context and common utilities.
+    """
+    form_class = LoginForm
+    template_name = 'users/login.html'
+    success_url = 'newsapp:index'
+
+    async def get(self, request):
+        """
+        Handles GET requests for displaying the login form.
+
+        Parameters:
+        request: HTTP GET request object.
+
+        Returns:
+        HTTPResponse: Rendered login form with common context.
+        """
+        is_authenticated = await sync_to_async(
+            lambda: request.user.is_authenticated
+        )()
+        if is_authenticated:
+            # Redirect authenticated users to the main page
+            return redirect(self.success_url)
+
+        # Prepare the form and get common context
+        form = self.form_class(
+            language=await sync_to_async(get_language)(request)
+        )
+        context = await self.get_common_context(request)
+        context["form"] = form
+
+        return render(request, self.template_name, context)
+
+    async def post(self, request):
+        """
+        Handles POST requests for processing the login form submission.
+
+        Parameters:
+        request: HTTP POST request object with form data.
+
+        Returns:
+        HTTPResponse: Redirects to the main page on successful login,
+                      otherwise re-renders the login form with errors.
+        """
+        is_authenticated = await sync_to_async(
+            lambda: request.user.is_authenticated
+        )()
+        if is_authenticated:
+            # Redirect authenticated users to the main page
+            return redirect(self.success_url)
+
+        # Initialize the form with POST data
+        form = self.form_class(
+            request.POST, language=await sync_to_async(get_language)(request)
+        )
+
+        if await sync_to_async(form.is_valid)():
+            # Authenticate the user
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = await sync_to_async(authenticate)(
+                request, username=username, password=password
+            )
+
+            if user is not None:
+                # Log in the user
+                await sync_to_async(login)(request, user)
+                return redirect(self.success_url)
+
+            # If credentials are invalid, add an error message
+            form.add_error(None, "Invalid username or password.")
 
         # If the form is invalid, re-render the form with errors
         context = await self.get_common_context(request)
