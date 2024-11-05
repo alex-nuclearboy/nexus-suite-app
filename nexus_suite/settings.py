@@ -14,11 +14,6 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-from cloudinary.models import CloudinaryField
-
 # Load environment variables from the .env file
 load_dotenv()
 
