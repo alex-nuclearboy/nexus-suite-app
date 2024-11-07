@@ -1,7 +1,11 @@
 /* ===================== */
 /* Styling for Messages  */
 /* ===================== */
-.alert-success {
+.messages {
+    margin-bottom: 20px;
+}
+
+.success, .alert-success {
     color: green;
 }
 
