@@ -31,6 +31,27 @@ class BaseView(View):
     Base class view that includes common context setup, like date, time,
     and translations, to be used across various views.
     """
+    def get_user(self, request):
+        """Return the current user."""
+        return request.user
+
+    @sync_to_async
+    def is_authenticated(self, request):
+        """Check if the user is authenticated."""
+        return request.user.is_authenticated
+
+    def get_avatar_url(self, user):
+        """
+        Retrieves the avatar URL for a user.
+        """
+        if (
+            user.is_authenticated
+                and hasattr(user, 'profile')
+                and user.profile.avatar
+        ):
+            return user.profile.avatar.url
+        return None
+
     async def get_common_context(self, request):
         """
         Forms and returns a common context dictionary for all views.
@@ -65,12 +86,18 @@ class BaseView(View):
             f"{translated_day}, {now.day} {translated_month} {now.year}"
         )
 
+        # Retrieve user's avatar URL
+        user = await sync_to_async(self.get_user)(request)
+        avatar_url = await sync_to_async(self.get_avatar_url)(request.user)
+
         return {
             'language': language,
             'translations': transl,
             'current_date': current_date,
             'current_time': current_time,
             'user_timezone': user_timezone,
+            'user': user,
+            'avatar_url': avatar_url,
         }
 
 
@@ -197,6 +224,7 @@ class MainView(BaseView):
             'user_update_time': formatted_user_update_time,
             'countries': COUNTRIES if language == 'en' else COUNTRIES_UA,
             'exchange_rate_error_message': exchange_rate_error_message,
+            'is_authenticated': await self.is_authenticated(request),
         })
 
         return render(request, 'newsapp/index.html', context)
