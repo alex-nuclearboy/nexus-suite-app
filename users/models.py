@@ -3,8 +3,11 @@ from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 
 from cloudinary.models import CloudinaryField
+import cloudinary
+import cloudinary.api
 from PIL import Image
 from io import BytesIO
+import requests
 
 
 class Profile(models.Model):
@@ -19,12 +22,12 @@ class Profile(models.Model):
                                   with a default value if none is provided.
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=30, blank=True, null=True)
-    last_name = models.CharField(max_length=30, blank=True, null=True)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
     avatar = CloudinaryField(
         'image',
         default='nexussuiteapp/profile_images/default_avatar_a1kzyk.png',
-        folder='profile_images'
+        folder='nexussuiteapp/profile_images'
     )
 
     def __str__(self):
@@ -34,7 +37,7 @@ class Profile(models.Model):
         Returns:
             str: A string containing the user's full name and username.
         """
-        return f"{self.first_name} {self.last_name} ({self.user.username})"
+        return f"{self.user.username} ({self.first_name} {self.last_name})"
 
     def save(self, *args, **kwargs):
         """
@@ -48,33 +51,44 @@ class Profile(models.Model):
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
         """
-        if self.avatar and not self._state.adding:
-            # Save the instance before resizing
-            super().save(*args, **kwargs)
 
-            # Open the image to resize it
-            img = Image.open(self.avatar)
+        if self.avatar and hasattr(self.avatar, 'public_id'):
+            # Fetch and resize the avatar image if necessary
+            result = cloudinary.api.resource(self.avatar.public_id)
+            image_url = result.get('secure_url')
+
+            # Fetch the image from Cloudinary
+            response = requests.get(image_url)
+            img = Image.open(BytesIO(response.content))
+
+            # Resize image if it's too large
             if img.height > 250 or img.width > 250:
                 output = BytesIO()
-
-                # Use Resampling.LANCZOS for high-quality downsampling
                 img.thumbnail((250, 250), Image.Resampling.LANCZOS)
-
-                # Determine the format based on the file extension
                 img_format = (
                     'PNG' if 'png' in self.avatar.name.lower() else 'JPEG'
                 )
                 img.save(output, format=img_format)
                 output.seek(0)
 
-                # Save the resized image back to the avatar field
+                # Save resized image back to Cloudinary
                 self.avatar.save(
                     self.avatar.name,
                     ContentFile(output.getvalue()),
                     save=False
                 )
 
-            # Save the instance again after resizing
-            super().save(*args, **kwargs)
-        else:
-            super().save(*args, **kwargs)
+        # Only save once after all updates are done
+        super(Profile, self).save(*args, **kwargs)
+
+    def update_user_name(self):
+        """
+        Updates the User model's first and last name fields.
+        This method synchronizes the first and last name in the Profile model
+        with the corresponding fields in the User model.
+        """
+        if self.first_name:
+            self.user.first_name = self.first_name
+        if self.last_name:
+            self.user.last_name = self.last_name
+        self.user.save()
