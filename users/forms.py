@@ -118,20 +118,23 @@ class UserRegistrationForm(UserCreationForm):
             ],
         })
 
-    def clean_username_and_email(self):
+    def clean_username(self):
         """
-        Validate that the username and email are unique.
+        Validate that the username is unique.
         """
         username = self.cleaned_data.get('username')
-        email = self.cleaned_data.get('email')
-
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError(self.transl["username_exists"])
+        return username
 
+    def clean_email(self):
+        """
+        Validate that the email is unique.
+        """
+        email = self.cleaned_data.get('email')
         if email and User.objects.filter(email=email).exists():
             raise forms.ValidationError(self.transl["email_exists"])
-
-        return username, email
+        return email
 
     def clean(self):
         """
@@ -148,9 +151,6 @@ class UserRegistrationForm(UserCreationForm):
             for error in e.messages:
                 self.add_error('password1', error)
                 self.add_error('password2', error)
-
-        # Validate username and email uniqueness
-        self.clean_username_and_email()
 
         return cleaned_data
 
