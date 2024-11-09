@@ -14,6 +14,14 @@
 </script>
 
 <main>
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <h1>
         <a href="{% url 'newsapp:news_by_category' 'general' %}" class="header-link">
             {{ translations.todays_news }}
@@ -66,9 +74,15 @@
                 </div>
                 <img src="{{ weather_data.current.icon_url }}" alt="Weather Icon">
                 <div class="other-details">
-                    <p><span>{{ translations.humidity_ix }}</span>: <strong>{{ weather_data.current.humidity }}%</strong></p>
-                    <p><span>{{ translations.pressure_ix }}</span>: <strong>{{ weather_data.current.pressure_mm }} {{ translations.mmHg }}</strong></p>
-                    <p><span>{{ translations.wind_ix }}</span>: <strong>{{ weather_data.current.wind_mps }} {{ translations.mps }}</strong></p>
+                    <p><span>{{ translations.humidity_ix }}</span>:
+                        <strong>{{ weather_data.current.humidity }}%</strong>
+                    </p>
+                    <p><span>{{ translations.pressure_ix }}</span>:
+                        <strong>{{ weather_data.current.pressure_mm }} {{translations.mmHg }}</strong>
+                    </p>
+                    <p><span>{{ translations.wind_ix }}</span>:
+                        <strong>{{ weather_data.current.wind_mps }} {{ translations.mps }}</strong>
+                    </p>
                 </div>
             </div>
             <p class="condition"><strong>{{ weather_data.current.condition }}</strong></p>
