@@ -163,6 +163,11 @@ header .nav-bar {
     color: var(--color-brand);
 }
 
+.nav-bar .auth-links {
+    display: flex;
+    align-items: center;
+}
+
 .nav-bar .auth-links a {
     color: var(--color-primary);
     font-size: var(--font-size-base);
@@ -174,6 +179,19 @@ header .nav-bar {
 .nav-bar .auth-links a:hover {
     color: var(--color-brand);
     font-weight: var(--font-weight-bold);
+}
+
+.nav-bar .avatar-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 16px;
+    transition: transform 0.3s ease;
+}
+
+.avatar-img:hover {
+    transform: scale(1.10);
 }
 
 /* ===================== */
