@@ -39,7 +39,9 @@
 
             <div class="auth-links">
                 {% if request.user.is_authenticated %}
-                <img src="{{ avatar_url }}" alt="Avatar" class="avatar-img">
+                <a href="{% url 'users:profile' %}">
+                    <img src="{{ avatar_url }}" alt="Avatar" class="avatar-img">
+                </a>
                 <span>{{ translations.welcome }}, <b>{{ user.username }}!</b></span>
                 <a href="{% url 'users:logout' %}">{{ translations.logout }}</a>
                 {% else %}
