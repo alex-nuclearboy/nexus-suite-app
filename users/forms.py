@@ -210,9 +210,6 @@ class UserLoginForm(AuthenticationForm):
         username_or_email = cleaned_data.get('username_or_email')
         password = cleaned_data.get('password')
 
-        # Use the clean_username_or_email method to validate
-        self.clean_username_or_email()
-
         if username_or_email and password:
             user = User.objects.filter(username=username_or_email).first() or \
                    User.objects.filter(email=username_or_email).first()
