@@ -1,12 +1,11 @@
-from django.views import View
-from django.utils import timezone
-from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.shortcuts import render, redirect
 
-from asgiref.sync import sync_to_async
 import pytz
 
 from newsapp.utils.utils import (
@@ -14,57 +13,88 @@ from newsapp.utils.utils import (
 )
 from .utils.translations import translations
 
-from .forms import UserRegistrationForm, UserLoginForm
+from .forms import (
+    UserRegistrationForm, UserLoginForm,
+    UpdateUserProfileDataForm, UpdateUserProfileAvatarForm,
+    PasswordChangeForm
+)
 
 
-class BaseUserView(View):
+class BaseUserView(TemplateView):
     """
-    Base class view that includes common context setup, like date, time,
-    and translations, to be used across various views.
+    Base class for handling user-related requests. Provides common methods
+    for retrieving user data, checking authentication, and setting shared
+    context for various views.
+
+    Methods:
+    - get_user: Retrieve the user from the current request.
+    - is_authenticated: Check if the user is authenticated.
+    - get_common_context: Gather shared context data for rendering templates.
     """
-    @sync_to_async
+
     def get_user(self, request):
+        """
+        Returns the user from the current request.
+
+        :param request: The user request.
+        :return: The user from the request.
+        """
         return request.user
 
-    @sync_to_async
     def is_authenticated(self, request):
+        """
+        Checks if the user is authenticated.
+
+        :param request: The user request.
+        :return: True if the user is authenticated, otherwise False.
+        """
         return request.user.is_authenticated
 
-    async def get_common_context(self, request):
+    def get_avatar_url(self, user):
         """
-        Forms and returns a common context dictionary for all views.
+        Retrieves the avatar URL for the user, if available.
 
-        Parameters:
-        request: User's session request object containing session data.
-
-        Returns:
-        dict: Dictionary with general data such as language, timezone,
-              current date and time, and translations.
+        :param user: The user object.
+        :return: The avatar URL or None if no avatar is set.
         """
-        language = await sync_to_async(get_language)(request)
+        if (
+            user.is_authenticated
+                and hasattr(user, 'profile')
+                and user.profile.avatar
+        ):
+            return user.profile.avatar.url
+        return None
+
+    def get_common_context(self, request):
+        """
+        Constructs shared context for all user views, including current time,
+        date, and language-specific translations.
+
+        :param request: The user request.
+        :return: A dictionary containing context data for the template.
+        """
+        language = get_language(request)
         transl = translations.get(language, translations['en'])
 
-        await sync_to_async(set_timezone)(request)
+        set_timezone(request)
 
-        # Get user's timezone and current time
-        timezone_str = (
-            await sync_to_async(request.session.get)('django_timezone', 'UTC')
-        )
+        # Retrieve user timezone and current time
+        timezone_str = request.session.get('django_timezone', 'UTC')
         user_timezone = pytz.timezone(timezone_str)
         now = timezone.now().astimezone(user_timezone)
 
         # Translate the date and time
-        translated_day, translated_month = (
-            await sync_to_async(get_translated_day_and_month)(
-                now, language, 'full'
-            )
+        translated_day, translated_month = get_translated_day_and_month(
+            now, language, 'full'
         )
         current_time = now.strftime('%H:%M')
         current_date = (
             f"{translated_day}, {now.day} {translated_month} {now.year}"
         )
 
-        user = await self.get_user(request)
+        # Retrieve user's avatar URL
+        user = self.get_user(request)
+        avatar_url = self.get_avatar_url(request.user)
 
         return {
             'language': language,
@@ -73,75 +103,73 @@ class BaseUserView(View):
             'current_time': current_time,
             'user_timezone': user_timezone,
             'user': user,
+            'avatar_url': avatar_url,
+            'is_authenticated': self.is_authenticated(request),
         }
 
 
 class SignupUserView(BaseUserView):
     """
-    Asynchronous view for handling user signup, using the BaseUserView to
-    inherit shared context and common utilities.
+    Handles user registration.
+
+    Processes:
+    - GET: Renders the registration form.
+    - POST: Validates and saves the user.
+
+    Uses:
+    - UserRegistrationForm: Form used to register a new user.
+    - translations: For displaying language-specific messages.
     """
+
     form_class = UserRegistrationForm
     template_name = 'users/signup.html'
     success_url = 'users:login'
 
-    async def get(self, request):
+    def get(self, request):
         """
-        Handles GET requests for displaying the signup form.
+        Handles GET request to render the registration form.
 
-        Parameters:
-        request: HTTP GET request object.
-
-        Returns:
-        HTTPResponse: Rendered signup form with common context.
+        :param request: The user request.
+        :return: Template with the registration form.
         """
-        if await self.is_authenticated(request):
+        if self.is_authenticated(request):
             # Redirect authenticated users to the main page
             return redirect(self.success_url)
 
         # Prepare the form and get common context
-        form = self.form_class(
-            language=await sync_to_async(get_language)(request)
-        )
-        context = await self.get_common_context(request)
+        form = self.form_class(language=get_language(request))
+        context = self.get_common_context(request)
         context["form"] = form
         context["form_errors"] = form.errors
 
         return render(request, self.template_name, context)
 
-    async def post(self, request):
+    def post(self, request):
         """
-        Handles POST requests for processing the signup form submission.
+        Handles POST request to process the registration form
+        and create a user.
 
-        Parameters:
-        request: HTTP POST request object with form data.
-
-        Returns:
-        HTTPResponse: Redirects to the main page on successful signup,
-                      otherwise re-renders the signup form with errors.
+        :param request: The user request with form data.
+        :return: Redirects to the login page after successful registration.
         """
-        if await self.is_authenticated(request):
+        if self.is_authenticated(request):
             # Redirect authenticated users to the main page
             return redirect(self.success_url)
 
-        # Initialize the form with POST data
-        form = self.form_class(
-            request.POST, language=await sync_to_async(get_language)(request)
-        )
-
-        language = await sync_to_async(get_language)(request)
+        language = get_language(request)
         transl = translations.get(language, translations['en'])
 
-        if await sync_to_async(form.is_valid)():
+        # Initialize the form with POST data
+        form = self.form_class(request.POST, language=language)
+
+        if form.is_valid():
             # Save the form and redirect on success
-            await sync_to_async(form.save)()
-            await sync_to_async(messages.success)(
-                request, transl['signup_success']
-            )
+            form.save()
+            messages.success(request, transl['signup_success'])
             return redirect(self.success_url)
 
         # If the form is invalid, re-render the form with errors
-        context = await self.get_common_context(request)
+        context = self.get_common_context(request)
         context["form"] = form
         context["form_errors"] = form.errors
         return render(request, self.template_name, context)
@@ -149,71 +177,74 @@ class SignupUserView(BaseUserView):
 
 class LoginUserView(BaseUserView):
     """
-    View for handling user login.
+    Handles user login.
+
+    Processes:
+    - GET: Renders the login form.
+    - POST: Validates the login form and logs in the user.
+
+    Uses:
+    - UserLoginForm: Form for log in a user.
+    - translations: For displaying language-specific messages.
     """
+
     form_class = UserLoginForm
     template_name = 'users/login.html'
     success_url = 'newsapp:index'
 
-    async def get(self, request):
+    def get(self, request):
         """
-        Handles GET requests and displays the login form.
+        Handles GET request to render the login form.
 
-        Parameters:
-        request: HTTP GET request object.
-
-        Returns:
-        HTTPResponse: Renders the login page with the form.
+        :param request: The user request.
+        :return: Template with the login form.
         """
-        if await self.is_authenticated(request):
+        if self.is_authenticated(request):
             # Redirect authenticated users to the main page
             return redirect(self.success_url)
 
-        # Prepare the form and get common context asynchronously
-        form = self.form_class(
-            language=await sync_to_async(get_language)(request)
-        )
-        context = await self.get_common_context(request)
+        # Prepare the form and get common context
+        form = self.form_class(language=get_language(request))
+        context = self.get_common_context(request)
         context["form"] = form
         context["form_errors"] = form.errors
 
         return render(request, self.template_name, context)
 
-    async def post(self, request):
+    def post(self, request):
         """
-        Handles POST requests for user login.
+        Handles POST request to process the login form
+        and authenticate the user.
 
-        Parameters:
-        request: HTTP POST request object.
-
-        Returns:
-        HTTPResponse: Redirects to the home page upon successful login,
-                      otherwise re-renders the login page with errors.
+        :param request: The user request with form data.
+        :return: Redirects to the home page after successful login.
         """
-        language = await sync_to_async(get_language)(request)
+        if self.is_authenticated(request):
+            # Redirect authenticated users to the main page
+            return redirect(self.success_url)
+
+        language = get_language(request)
         transl = translations.get(language, translations['en'])
 
+        # Initialize the form with POST data
         form = self.form_class(request, data=request.POST, language=language)
 
-        if await sync_to_async(form.is_valid)():
+        if form.is_valid():
             user = form.get_user()
             if user is not None:
-                await sync_to_async(login)(request, user)
-                await sync_to_async(messages.success)(request,
-                                                      transl['login_success'])
+                login(request, user)
+                messages.success(request, transl['login_success'])
                 return redirect(self.success_url)
             else:
-                await sync_to_async(messages.error)(
-                    request, transl['invalid_credentials']
-                )
+                messages.error(request, transl['invalid_credentials'])
         else:
             for field in form:
                 for error in field.errors:
-                    await sync_to_async(messages.error)(request, error)
+                    messages.error(request, error)
             for error in form.non_field_errors():
-                await sync_to_async(messages.error)(request, error)
+                messages.error(request, error)
 
-        context = await self.get_common_context(request)
+        context = self.get_common_context(request)
         context["form"] = form
         context["form_errors"] = form.errors
 
@@ -222,20 +253,22 @@ class LoginUserView(BaseUserView):
 
 class LogoutUserView(BaseUserView):
     """
-    Asynchronous view for handling user logout.
+    Handles user logout.
+
+    Processes:
+    - GET: Logs out the user and redirects to the home page.
+
+    Uses:
+    - translations: For displaying language-specific messages.
     """
 
     @method_decorator(login_required)
     def get(self, request):
-        """# Login by username
-        Handles GET requests for logging out the user.
+        """
+        Handles GET request to log the user out and redirect to the home page.
 
-        Parameters:
-        request: HTTP GET request object.
-
-        Returns:
-        HTTPResponse: Redirects to the home page after successful logout,
-                      displaying a success message.
+        :param request: The user request.
+        :return: Redirects to the home page after logout.
         """
         language = get_language(request)
         transl = translations.get(language, translations['en'])
@@ -248,3 +281,127 @@ class LogoutUserView(BaseUserView):
         request.session['language'] = language
 
         return redirect('newsapp:index')
+
+
+class UpdateUserProfileView(BaseUserView):
+    """
+    Handles user profile updates.
+
+    Processes:
+    - GET: Renders the user profile form.
+    - POST: Validates and saves the updated user profile.
+
+    Uses:
+    - UpdateUserProfileDataForm: Form for editing user profile data.
+    - UpdateUserProfileAvatarForm: Form for editing user avatar.
+    - PasswordChangeForm: Form for changing user password.
+    """
+
+    template_name = 'users/profile.html'
+
+    @method_decorator(login_required)
+    def get(self, request):
+        """
+        Handles GET request to render the user profile form.
+
+        :param request: The user request.
+        :return: Template with the profile editing form.
+        """
+        data_form = UpdateUserProfileDataForm(instance=request.user.profile)
+        avatar_form = UpdateUserProfileAvatarForm(
+            instance=request.user.profile
+        )
+        password_form = PasswordChangeForm(
+            user=request.user, language=get_language(request)
+        )
+        context = self.get_common_context(request)
+        context.update({
+            'data_form': data_form,
+            'avatar_form': avatar_form,
+            'password_form': password_form,
+        })
+        return render(request, self.template_name, context)
+
+    @method_decorator(login_required)
+    def post(self, request):
+        """
+        Handles POST request to process profile update.
+
+        :param request: The user request with form data.
+        :return: Renders profile page with success message or form errors.
+        """
+        language = get_language(request)
+        transl = translations.get(language, translations['en'])
+        context = self.get_common_context(request)
+
+        # Initialize specific forms based on the action in the POST data
+        if "update_avatar" in request.POST:
+            avatar_form = UpdateUserProfileAvatarForm(
+                request.POST, request.FILES, instance=request.user.profile,
+                language=language
+            )
+            if avatar_form.is_valid():
+                avatar_form.save()
+                messages.success(request, transl['avatar_updated_success'])
+                return redirect('users:profile')
+            else:
+                context['avatar_form'] = avatar_form
+                context['avatar_form_errors'] = avatar_form.errors
+
+        elif "update_profile" in request.POST:
+            data_form = UpdateUserProfileDataForm(
+                request.POST, instance=request.user.profile,
+                language=language
+            )
+            if data_form.is_valid():
+                profile = data_form.save(commit=False)
+                request.user.first_name = profile.first_name
+                request.user.last_name = profile.last_name
+                request.user.save()
+                profile.save()
+                messages.success(request, transl['profile_updated_success'])
+                return redirect('users:profile')
+            else:
+                context['data_form'] = data_form
+                context['data_form_errors'] = data_form.errors
+
+        elif "change_password" in request.POST:
+            password_form = PasswordChangeForm(
+                request.POST, user=request.user, language=language
+            )
+            if password_form.is_valid():
+                new_password = password_form.cleaned_data['new_password1']
+                request.user.set_password(new_password)
+                request.user.save()
+                update_session_auth_hash(request, request.user)
+                messages.success(request, transl['password_changed_success'])
+                return redirect('users:profile')
+            else:
+                context['password_form'] = password_form
+                context['password_form_errors'] = password_form.errors
+
+        # If any of the forms failed validation,
+        # return the context with error messages
+        context.setdefault(
+            'data_form',
+            UpdateUserProfileDataForm(
+                instance=request.user.profile,
+                language=language
+            )
+        )
+        context.setdefault(
+            'avatar_form',
+            UpdateUserProfileAvatarForm(
+                instance=request.user.profile,
+                language=language
+            )
+        )
+        context.setdefault(
+            'password_form',
+            PasswordChangeForm(
+                user=request.user,
+                language=language
+            )
+        )
+
+        return render(request, self.template_name, context)
