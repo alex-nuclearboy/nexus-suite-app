@@ -13,6 +13,12 @@
     color: crimson;
 }
 
+.errorlist li {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
 /* ======================= */
 /* Define Global Variables */
 /* ======================= */
