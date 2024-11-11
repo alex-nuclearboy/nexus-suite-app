@@ -31,6 +31,7 @@ class BaseView(View):
     Base class view that includes common context setup, like date, time,
     and translations, to be used across various views.
     """
+
     def get_user(self, request):
         """Return the current user."""
         return request.user
