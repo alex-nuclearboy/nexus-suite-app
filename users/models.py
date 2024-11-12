@@ -22,6 +22,7 @@ class Profile(models.Model):
     :param gender: The user's gender, optional (choices: male, female, other).
     :param date_of_birth: The user's date of birth, optional.
     :param phone_number: The user's phone number, optional.
+    :param email: The user's email, optional.
     :param address: The user's address, optional.
     :param bio: A short biography of the user, optional.
     :param avatar: The user's avatar image stored in Cloudinary,
@@ -40,6 +41,7 @@ class Profile(models.Model):
     )
     date_of_birth = models.DateField(blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
+    email = models.EmailField(max_length=255, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     avatar = CloudinaryField(
@@ -77,6 +79,7 @@ class Profile(models.Model):
         :return: Saves the profile data with avatar and personal information.
         :rtype: None
         """
+
         # Check if avatar is a newly uploaded image (InMemoryUploadedFile)
         if isinstance(self.avatar, InMemoryUploadedFile):
             # Resize the image if it's larger than 250x250
