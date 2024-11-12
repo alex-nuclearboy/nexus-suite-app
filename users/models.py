@@ -89,9 +89,9 @@ class Profile(models.Model):
             if image.mode == 'RGBA':
                 image = image.convert('RGB')
 
-            # Resize the image if it's larger than 250x250
-            if image.width > 250 or image.height > 250:
-                image.thumbnail((250, 250), Image.Resampling.LANCZOS)
+            # Resize the image if it's larger than 400x400
+            if image.width > 400 or image.height > 400:
+                image.thumbnail((400, 400), Image.Resampling.LANCZOS)
                 output = BytesIO()
                 # Set the img_format based on the file extension,
                 # preserving the original format
