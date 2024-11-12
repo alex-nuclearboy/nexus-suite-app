@@ -30,12 +30,12 @@
 
         <div class="form-field">
             <label for="id_username_or_email">{{ translations.username_or_email }}<span
-                    style="color: crimson">*</span>:</label>
+                    class="asterisk">*</span>:</label>
             {{ form.username_or_email }}
         </div>
 
         <div class="form-field">
-            <label for="id_password">{{ translations.password }}<span style="color: crimson">*</span>:</label>
+            <label for="id_password">{{ translations.password }}<span class="asterisk">*</span>:</label>
             {{ form.password }}
             <label>
                 <input type="checkbox" class="toggle-password" data-target="password">
@@ -47,11 +47,11 @@
             <button type="submit">{{ translations.login }}</button>
             <button type="reset">{{ translations.reset }}</button>
         </div>
-
-        <p class="note">
-            <span style="color: crimson">*</span> {{ translations.required_note|safe }}
-        </p>
     </form>
+
+    <p class="note">
+        <span class="asterisk">*</span> {{ translations.required_note|safe }}
+    </p>
 
 </main>
 {% endblock %}
