@@ -163,26 +163,43 @@ optgroup label {
     background-color: var(--color-primary) !important;
 }
 
-/* Styling for the file input field */
-.file-input input[type="file"] {
+/* Wrapper for the file input */
+.file-upload-wrapper {
     background-color: var(--color-light);
-    color: var(--color-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;    
+    /* padding: 4px; */
+}
+
+/* Hidden file input field */
+.file-input-field {
+    display: none;
+}
+
+/* Styling for custom file label as a button */
+.file-label {
+    background-color: var(--color-bg-gray);
+    color: var(--color-primary);
     border: 1px solid var(--color-border);
     border-radius: 4px;
-    font-size: var(--font-size-sm);
-    text-align: center;
-    padding: 5px;
+    font-size: var(--font-size-sm) !important;
+    font-weight: var(--font-weight-base) !important;
+    white-space: nowrap;
     cursor: pointer;
+    padding: 4px 8px;
+    margin: 4px;
     transition: border-color 0.3s ease;
 }
 
-/* Custom styling for file input button */
-.file-input input[type="file"]::file-selector-button {
-    padding: 4px;
-    border: 1px solid var(--color-border);
-    border-radius: 5px;
+.file-label:hover {
+    border-color: var(--color-primary);
 }
 
-.file-input input[type="file"]::file-selector-button:hover {
-    border-color: var(--color-primary);
+/* Styling for the displayed file name text */
+#file-name {
+    color: var(--color-secondary);
+    font-size: var(--font-size-sm);
+    font-style: italic;
 }
