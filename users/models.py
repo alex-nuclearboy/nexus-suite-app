@@ -51,7 +51,7 @@ class Profile(models.Model):
 
     def __str__(self):
         """
-        Returns a string representation of the Profile instance.
+        Return a string representation of the Profile instance.
 
         Concatenates the user's first and last name along with their username.
 
@@ -62,16 +62,16 @@ class Profile(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Save method to handle the avatar upload and user profile update.
+        Save the profile instance, handling avatar upload
+        and updating the user's profile.
 
-        If a new avatar is uploaded, it is resized to fit within 250x250 pixels
-        and then uploaded to Cloudinary.
-        The resized image URL is saved to the avatar field.
-        If no avatar is uploaded, the default avatar is used.
+        This method handles any logic before saving the Profile instance,
+        such as managing avatar updates and processing additional fields,
+        if necessary.
 
-        :param args: Additional arguments passed to the save method.
+        :param args: Positional arguments passed to the save method.
         :type args: tuple
-        :param kwargs: Additional keyword arguments passed to the save method.
+        :param kwargs: Keyword arguments passed to the save method.
         :type kwargs: dict
 
         :return: Saves the profile data with avatar and personal information.
