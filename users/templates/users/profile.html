@@ -10,6 +10,7 @@
 {% block script %}
 <script src="{% static 'users/js/password.js' %}" defer></script>
 <script src="{% static 'users/js/gender.js' %}" defer></script>
+<script src="{% static 'users/js/file_choose.js' %}" defer></script>
 {% endblock %}
 
 {% block content %}
@@ -210,7 +211,13 @@
                 </div>
                 <div class="form-field file-input">
                     <label for="id_avatar">{{ translations.upload_new_avatar }}</label>
-                    {{ avatar_form.avatar }}
+                    <div class="file-upload-wrapper">
+                        <!-- Hidden file input field -->
+                        <input type="file" id="avatar-upload" name="avatar" class="file-input-field"
+                            onchange="updateFileName()">
+                        <label for="avatar-upload" class="file-label">{{ translations.choose_file }}</label>
+                        <span id="file-name">{{ translations.no_file_chosen }}</span>
+                    </div>
                     {% if avatar_form_errors.avatar %}
                     <ul class="errorlist">
                         {% for error in avatar_form_errors.avatar %}
