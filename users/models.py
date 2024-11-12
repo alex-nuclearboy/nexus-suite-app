@@ -1,94 +1,103 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
-from cloudinary.models import CloudinaryField
 import cloudinary
 import cloudinary.api
+import cloudinary.uploader
+from cloudinary.models import CloudinaryField
+
 from PIL import Image
 from io import BytesIO
-import requests
 
 
 class Profile(models.Model):
     """
-    A model representing a user profile.
+    Represents a user profile containing personal data, with optional fields
+    for avatar, gender, date of birth, phone number, address, and bio.
 
-    Parameters:
-        user (OneToOneField): A one-to-one relationship with the User model.
-        first_name (CharField): The user's first name, optional.
-        last_name (CharField): The user's last name, optional.
-        avatar (CloudinaryField): The user's avatar image stored in Cloudinary,
-                                  with a default value if none is provided.
+    :param user: A one-to-one relationship with the User model.
+    :param first_name: The user's first name, optional.
+    :param last_name: The user's last name, optional.
+    :param gender: The user's gender, optional (choices: male, female, other).
+    :param date_of_birth: The user's date of birth, optional.
+    :param phone_number: The user's phone number, optional.
+    :param address: The user's address, optional.
+    :param bio: A short biography of the user, optional.
+    :param avatar: The user's avatar image stored in Cloudinary,
+                   with a default if none is provided.
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=30, blank=True)
+    gender = models.CharField(
+        max_length=10,
+        choices=[
+            ('male', 'Male'), ('female', 'Female'), ('other', 'Other')
+        ],
+        blank=True,
+        null=True
+    )
+    date_of_birth = models.DateField(blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
     avatar = CloudinaryField(
         'image',
         default='nexussuiteapp/profile_images/default_avatar_a1kzyk.png',
-        folder='nexussuiteapp/profile_images'
+        folder='nexussuiteapp/profile_images',
+        blank=True,
     )
 
     def __str__(self):
         """
         Returns a string representation of the Profile instance.
 
-        Returns:
-            str: A string containing the user's full name and username.
+        Concatenates the user's first and last name along with their username.
+
+        :return: A string containing the user's full name and username.
+        :rtype: str
         """
         return f"{self.user.username} ({self.first_name} {self.last_name})"
 
     def save(self, *args, **kwargs):
         """
-        Saves the Profile instance, resizing the avatar image if necessary.
+        Save method to handle the avatar upload and user profile update.
 
-        This method overrides the default save method to ensure that the
-        avatar image is resized to fit within a 250x250 pixel bounding box
-        if it exceeds those dimensions.
+        If a new avatar is uploaded, it is resized to fit within 250x250 pixels
+        and then uploaded to Cloudinary.
+        The resized image URL is saved to the avatar field.
+        If no avatar is uploaded, the default avatar is used.
 
-        Parameters:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
+        :param args: Additional arguments passed to the save method.
+        :type args: tuple
+        :param kwargs: Additional keyword arguments passed to the save method.
+        :type kwargs: dict
+
+        :return: Saves the profile data with avatar and personal information.
+        :rtype: None
         """
-
-        if self.avatar and hasattr(self.avatar, 'public_id'):
-            # Fetch and resize the avatar image if necessary
-            result = cloudinary.api.resource(self.avatar.public_id)
-            image_url = result.get('secure_url')
-
-            # Fetch the image from Cloudinary
-            response = requests.get(image_url)
-            img = Image.open(BytesIO(response.content))
-
-            # Resize image if it's too large
-            if img.height > 250 or img.width > 250:
+        # Check if avatar is a newly uploaded image (InMemoryUploadedFile)
+        if isinstance(self.avatar, InMemoryUploadedFile):
+            # Resize the image if it's larger than 250x250
+            image = Image.open(self.avatar)
+            if image.width > 250 or image.height > 250:
+                image.thumbnail((250, 250), Image.Resampling.LANCZOS)
                 output = BytesIO()
-                img.thumbnail((250, 250), Image.Resampling.LANCZOS)
                 img_format = (
                     'PNG' if 'png' in self.avatar.name.lower() else 'JPEG'
                 )
-                img.save(output, format=img_format)
-                output.seek(0)
+                image.save(output, format=img_format)
+                output.seek(0)  # Reset file pointer to the start
 
-                # Save resized image back to Cloudinary
-                self.avatar.save(
-                    self.avatar.name,
-                    ContentFile(output.getvalue()),
-                    save=False
+                # Upload the resized image to Cloudinary and save the URL
+                cloudinary_response = cloudinary.uploader.upload(
+                    output, folder='nexussuiteapp/profile_images'
                 )
+                relative_url = (
+                    cloudinary_response['secure_url'].split('upload/')[-1]
+                )
+                self.avatar = f"image/upload/{relative_url}"
 
-        # Only save once after all updates are done
-        super(Profile, self).save(*args, **kwargs)
-
-    def update_user_name(self):
-        """
-        Updates the User model's first and last name fields.
-        This method synchronizes the first and last name in the Profile model
-        with the corresponding fields in the User model.
-        """
-        if self.first_name:
-            self.user.first_name = self.first_name
-        if self.last_name:
-            self.user.last_name = self.last_name
-        self.user.save()
+        # Save the profile instance with updated avatar and personal details
+        super().save(*args, **kwargs)
