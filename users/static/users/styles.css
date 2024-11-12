@@ -1,10 +1,8 @@
-/* ======================== */
-/* Registration Page Styles */
-/* ======================== */
-
+/* ================================== */
+/* Registration and Login Page Styles */
+/* ================================== */
 form {
     background-color: var(--color-bg-light);
-    border: none;
     border-radius: 8px;
     max-width: 600px;
     margin: 0 auto;
@@ -12,6 +10,7 @@ form {
     box-shadow: var(--element-shadow);
 }
 
+/* Styling for form fields with label and input structure */
 .form-field {
     display: flex;
     flex-direction: column;
@@ -23,16 +22,18 @@ form {
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-bold);
     margin-bottom: 4px;
+    cursor: pointer;
 }
 
-/* Input fields styling */
-form input[type="text"],
-form input[type="email"],
-form input[type="password"] {
+.form-field input,
+.form-field select,
+.form-field input[type="date"],
+.form-field textarea {
     width: 100%;
     padding: 10px;
     background-color: var(--color-light);
     color: var(--color-primary);
+    font-family: var(--font-family-base);
     font-size: var(--font-size-sm);
     border: 1px solid var(--color-border);
     border-radius: 4px;
@@ -40,10 +41,31 @@ form input[type="password"] {
     outline: none;
 }
 
-form input[type="text"]:focus,
-form input[type="email"]:focus,
-form input[type="password"]:focus {
+.form-field input:focus,
+.form-field select:focus,
+.form-field input[type="date"]:focus,
+.form-field textarea:focus {
     border-color: var(--color-primary);
+}
+
+.form-field select option:first-child {
+    color: var(--color-secondary);
+}
+
+/* Customize label for optgroup */
+.optgroup {
+    color: var(--color-primary);
+}
+
+/* Style individual options */
+optgroup label {
+    color: var(--color-secondary);
+}
+
+/* Styling for checkbox labels */
+.form-field label input[type="checkbox"] {
+    width: auto;
+    margin-right: 4px;
 }
 
 .checkbox-label {
@@ -52,6 +74,11 @@ form input[type="password"]:focus {
     cursor: pointer;
 }
 
+.asterisk {
+    color: crimson;
+}
+
+/* Grid styling for buttons */
 .grid {
     display: flex;
     gap: 20px;
@@ -63,10 +90,99 @@ form input[type="password"]:focus {
     flex: 1;
 }
 
-/* Note styling */
+/* Note text styling at the bottom of the form */
 .note {
     color: var(--color-secondary);
     font-size: var(--font-size-sm);
     text-align: center;
     margin-top: 20px;
+}
+
+/* ======================== */
+/* Profile Page Styles      */
+/* ======================== */
+
+/* Main container for profile page sections */
+.profile-container {
+    display: flex;
+    flex-direction: row;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Main content area for personal data and password sections */
+.main-content {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+}
+
+.personal-data-section,
+.password-change-section {
+    margin-bottom: 20px;
+}
+
+/* Avatar section */
+.avatar-section {
+    flex: 1;
+    justify-content: center;
+    max-width: 360px;
+    margin-left: 20px;
+}
+
+.avatar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.avatar img {
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-section .grid {
+    display: block;
+}
+
+.avatar-section .grid button {
+    width: 100%;
+    white-space: nowrap;
+    margin-top: 10px;
+}
+
+/* Styling for the delete button */
+.remove-avatar-btn {
+    background-color: var(--color-bg-dark) !important;
+}
+
+.remove-avatar-btn:hover {
+    background-color: var(--color-primary) !important;
+}
+
+/* Styling for the file input field */
+.file-input input[type="file"] {
+    background-color: var(--color-light);
+    color: var(--color-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    text-align: center;
+    padding: 5px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+/* Custom styling for file input button */
+.file-input input[type="file"]::file-selector-button {
+    padding: 4px;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+}
+
+.file-input input[type="file"]::file-selector-button:hover {
+    border-color: var(--color-primary);
 }
