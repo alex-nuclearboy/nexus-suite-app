@@ -6,6 +6,8 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.shortcuts import render, redirect
 
+from cloudinary.exceptions import Error as CloudinaryError
+
 import pytz
 
 from newsapp.utils.utils import (
@@ -37,7 +39,9 @@ class BaseUserView(TemplateView):
         Returns the user from the current request.
 
         :param request: The user request.
+        :type request: HttpRequest
         :return: The user from the request.
+        :rtype: User
         """
         return request.user
 
@@ -46,7 +50,9 @@ class BaseUserView(TemplateView):
         Checks if the user is authenticated.
 
         :param request: The user request.
+        :type request: HttpRequest
         :return: True if the user is authenticated, otherwise False.
+        :rtype: bool
         """
         return request.user.is_authenticated
 
@@ -55,7 +61,9 @@ class BaseUserView(TemplateView):
         Retrieves the avatar URL for the user, if available.
 
         :param user: The user object.
+        :type user: User
         :return: The avatar URL or None if no avatar is set.
+        :rtype: Optional[str]
         """
         if (
             user.is_authenticated
@@ -71,7 +79,9 @@ class BaseUserView(TemplateView):
         date, and language-specific translations.
 
         :param request: The user request.
+        :type request: HttpRequest
         :return: A dictionary containing context data for the template.
+        :rtype: dict
         """
         language = get_language(request)
         transl = translations.get(language, translations['en'])
@@ -130,17 +140,23 @@ class SignupUserView(BaseUserView):
         Handles GET request to render the registration form.
 
         :param request: The user request.
+        :type request: HttpRequest
         :return: Template with the registration form.
+        :rtype: HttpResponse
         """
+        # Check if the user is already authenticated
         if self.is_authenticated(request):
-            # Redirect authenticated users to the main page
+            # Redirect authenticated users to the success page
             return redirect(self.success_url)
 
-        # Prepare the form and get common context
+        # Initialize the registration form with the current language
         form = self.form_class(language=get_language(request))
+        # Prepare the context with common data and the form
         context = self.get_common_context(request)
-        context["form"] = form
-        context["form_errors"] = form.errors
+        context.update({
+            "form": form,
+            "form_errors": form.errors
+        })
 
         return render(request, self.template_name, context)
 
@@ -150,18 +166,21 @@ class SignupUserView(BaseUserView):
         and create a user.
 
         :param request: The user request with form data.
+        :type request: HttpRequest
         :return: Redirects to the login page after successful registration.
+        :rtype: HttpResponse
         """
+        # Check if the user is already authenticated
         if self.is_authenticated(request):
-            # Redirect authenticated users to the main page
+            # Redirect authenticated users to the success page
             return redirect(self.success_url)
 
+        # Initialize the form with POST data and the current language
         language = get_language(request)
         transl = translations.get(language, translations['en'])
-
-        # Initialize the form with POST data
         form = self.form_class(request.POST, language=language)
 
+        # Check if the form is valid
         if form.is_valid():
             # Save the form and redirect on success
             form.save()
@@ -170,8 +189,11 @@ class SignupUserView(BaseUserView):
 
         # If the form is invalid, re-render the form with errors
         context = self.get_common_context(request)
-        context["form"] = form
-        context["form_errors"] = form.errors
+        context.update({
+            "form": form,
+            "form_errors": form.errors
+        })
+
         return render(request, self.template_name, context)
 
 
@@ -197,17 +219,23 @@ class LoginUserView(BaseUserView):
         Handles GET request to render the login form.
 
         :param request: The user request.
+        :type request: HttpRequest
         :return: Template with the login form.
+        :rtype: HttpResponse
         """
+        # Check if the user is already authenticated
         if self.is_authenticated(request):
-            # Redirect authenticated users to the main page
+            # Redirect authenticated users to the success page
             return redirect(self.success_url)
 
-        # Prepare the form and get common context
+        # Initialize the login form with the current language
         form = self.form_class(language=get_language(request))
+        # Prepare the context with common data and the form
         context = self.get_common_context(request)
-        context["form"] = form
-        context["form_errors"] = form.errors
+        context.update({
+            "form": form,
+            "form_errors": form.errors
+        })
 
         return render(request, self.template_name, context)
 
@@ -217,18 +245,21 @@ class LoginUserView(BaseUserView):
         and authenticate the user.
 
         :param request: The user request with form data.
+        :type request: HttpRequest
         :return: Redirects to the home page after successful login.
+        :rtype: HttpResponse
         """
+        # Check if the user is already authenticated
         if self.is_authenticated(request):
-            # Redirect authenticated users to the main page
+            # Redirect authenticated users to the success page
             return redirect(self.success_url)
 
+        # Initialize the form with POST data and the current language
         language = get_language(request)
         transl = translations.get(language, translations['en'])
-
-        # Initialize the form with POST data
         form = self.form_class(request, data=request.POST, language=language)
 
+        # Check if the form is valid
         if form.is_valid():
             user = form.get_user()
             if user is not None:
@@ -238,15 +269,19 @@ class LoginUserView(BaseUserView):
             else:
                 messages.error(request, transl['invalid_credentials'])
         else:
+            # Handle form validation errors
             for field in form:
                 for error in field.errors:
                     messages.error(request, error)
             for error in form.non_field_errors():
                 messages.error(request, error)
 
+        # If form is invalid, re-render the login page with errors
         context = self.get_common_context(request)
-        context["form"] = form
-        context["form_errors"] = form.errors
+        context.update({
+            "form": form,
+            "form_errors": form.errors
+        })
 
         return render(request, self.template_name, context)
 
@@ -262,25 +297,30 @@ class LogoutUserView(BaseUserView):
     - translations: For displaying language-specific messages.
     """
 
+    success_url = 'newsapp:index'
+
     @method_decorator(login_required)
     def get(self, request):
         """
         Handles GET request to log the user out and redirect to the home page.
 
         :param request: The user request.
+        :type request: HttpRequest
         :return: Redirects to the home page after logout.
+        :rtype: HttpResponse
         """
+        # Get the current language for translations
         language = get_language(request)
         transl = translations.get(language, translations['en'])
 
         # Log out the user
         logout(request)
 
-        # Display a success message
+        # Display a success message after logout
         messages.success(request, transl['logout_success'])
         request.session['language'] = language
 
-        return redirect('newsapp:index')
+        return redirect(self.success_url)
 
 
 class UpdateUserProfileView(BaseUserView):
@@ -305,15 +345,25 @@ class UpdateUserProfileView(BaseUserView):
         Handles GET request to render the user profile form.
 
         :param request: The user request.
+        :type request: HttpRequest
         :return: Template with the profile editing form.
+        :rtype: HttpResponse
         """
-        data_form = UpdateUserProfileDataForm(instance=request.user.profile)
+        # Retrieve the user's profile
+        profile = request.user.profile
+
+        # Initialize the profile editing forms with current data
+        data_form = UpdateUserProfileDataForm(
+            instance=profile, language=get_language(request)
+        )
         avatar_form = UpdateUserProfileAvatarForm(
-            instance=request.user.profile
+            instance=profile, language=get_language(request)
         )
         password_form = PasswordChangeForm(
             user=request.user, language=get_language(request)
         )
+
+        # Prepare the context with the forms
         context = self.get_common_context(request)
         context.update({
             'data_form': data_form,
@@ -328,43 +378,77 @@ class UpdateUserProfileView(BaseUserView):
         Handles POST request to process profile update.
 
         :param request: The user request with form data.
+        :type request: HttpRequest
         :return: Renders profile page with success message or form errors.
+        :rtype: HttpResponse
         """
+        # Get the current language and translations
         language = get_language(request)
         transl = translations.get(language, translations['en'])
-        context = self.get_common_context(request)
 
-        # Initialize specific forms based on the action in the POST data
+        # Prepare the context with common data and user profile
+        context = self.get_common_context(request)
+        profile = request.user.profile
+
+        # Handle avatar update
         if "update_avatar" in request.POST:
             avatar_form = UpdateUserProfileAvatarForm(
-                request.POST, request.FILES, instance=request.user.profile,
+                request.POST, request.FILES, instance=profile,
                 language=language
             )
-            if avatar_form.is_valid():
-                avatar_form.save()
-                messages.success(request, transl['avatar_updated_success'])
-                return redirect('users:profile')
-            else:
-                context['avatar_form'] = avatar_form
-                context['avatar_form_errors'] = avatar_form.errors
 
+            avatar = request.FILES.get('avatar')  # Access the uploaded avatar
+            if avatar and not avatar.read():
+                # Remove any existing errors for 'avatar'
+                avatar_form.errors.pop('avatar', None)
+                # If the file has no content
+                avatar_form.add_error('avatar', transl['avatar_empty'])
+
+            if avatar_form.is_valid():
+                try:
+                    avatar_form.save()
+                    messages.success(request, transl['avatar_updated_success'])
+                    return redirect('users:profile')
+                except CloudinaryError as e:
+                    error_message = transl['cloudinary_upload_failed'] + str(e)
+                    avatar_form.add_error('avatar', error_message)
+            # Update context with form and errors if applicable
+            context.update({
+                'avatar_form': avatar_form,
+                'avatar_form_errors': avatar_form.errors
+            })
+
+        # Handle avatar removal
+        elif "remove_avatar" in request.POST:
+            profile.avatar = (
+                'nexussuiteapp/profile_images/default_avatar_a1kzyk.png'
+            )
+            profile.save()
+            messages.success(request, transl['avatar_removed_success'])
+            return redirect('users:profile')
+
+        # Handle personal data update
         elif "update_profile" in request.POST:
             data_form = UpdateUserProfileDataForm(
-                request.POST, instance=request.user.profile,
+                request.POST, instance=profile,
                 language=language
             )
             if data_form.is_valid():
                 profile = data_form.save(commit=False)
                 request.user.first_name = profile.first_name
                 request.user.last_name = profile.last_name
+                request.user.email = profile.email
                 request.user.save()
                 profile.save()
                 messages.success(request, transl['profile_updated_success'])
                 return redirect('users:profile')
-            else:
-                context['data_form'] = data_form
-                context['data_form_errors'] = data_form.errors
+            # Update context with form and errors if applicable
+            context.update({
+                'data_form': data_form,
+                'data_form_errors': data_form.errors
+            })
 
+        # Handle password change
         elif "change_password" in request.POST:
             password_form = PasswordChangeForm(
                 request.POST, user=request.user, language=language
@@ -376,32 +460,25 @@ class UpdateUserProfileView(BaseUserView):
                 update_session_auth_hash(request, request.user)
                 messages.success(request, transl['password_changed_success'])
                 return redirect('users:profile')
-            else:
-                context['password_form'] = password_form
-                context['password_form_errors'] = password_form.errors
+            # Update context with form and errors if applicable
+            context.update({
+                'password_form': password_form,
+                'password_form_errors': password_form.errors
+            })
 
         # If any of the forms failed validation,
         # return the context with error messages
         context.setdefault(
             'data_form',
-            UpdateUserProfileDataForm(
-                instance=request.user.profile,
-                language=language
-            )
+            UpdateUserProfileDataForm(instance=profile, language=language)
         )
         context.setdefault(
             'avatar_form',
-            UpdateUserProfileAvatarForm(
-                instance=request.user.profile,
-                language=language
-            )
+            UpdateUserProfileAvatarForm(instance=profile, language=language)
         )
         context.setdefault(
             'password_form',
-            PasswordChangeForm(
-                user=request.user,
-                language=language
-            )
+            PasswordChangeForm(user=request.user, language=language)
         )
 
         return render(request, self.template_name, context)
