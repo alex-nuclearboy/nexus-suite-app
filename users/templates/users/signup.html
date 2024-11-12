@@ -33,13 +33,13 @@
         {% csrf_token %}
 
         <div class="form-field">
-            <label for="id_username">{{ translations.username }}<span style="color: crimson">*</span>:</label>
+            <label for="id_username">{{ translations.username }}<span class="asterisk">*</span>:</label>
             {{ form.username }}
             {% if form.username.errors %}
             <ul class="errorlist">
                 {% for error in form.username.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
+                <li">{{ error }}</li>
+                    {% endfor %}
             </ul>
             {% endif %}
         </div>
@@ -67,7 +67,7 @@
         </div>
 
         <div class="form-field">
-            <label for="id_password1">{{ translations.password }}<span style="color: crimson">*</span>:</label>
+            <label for="id_password1">{{ translations.password }}<span class="asterisk">*</span>:</label>
             {{ form.password1 }}
             <label>
                 <input type="checkbox" class="toggle-password" data-target="password1">
@@ -76,7 +76,7 @@
         </div>
 
         <div class="form-field">
-            <label for="id_password2">{{ translations.password_conf }}<span style="color: crimson">*</span>:</label>
+            <label for="id_password2">{{ translations.password_conf }}<span class="asterisk">*</span>:</label>
             {{ form.password2 }}
             <label>
                 <input type="checkbox" class="toggle-password" data-target="password2">
@@ -99,7 +99,7 @@
     </form>
 
     <p class="note">
-        <span style="color: crimson">*</span> {{ translations.required_note|safe }}
+        <span class="asterisk">*</span> {{ translations.required_note|safe }}
     </p>
 </main>
 {% endblock %}
