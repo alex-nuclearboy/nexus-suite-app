@@ -6,6 +6,8 @@ from django.contrib.auth.forms import (
 )
 
 import re
+import io
+from PIL import Image
 from datetime import datetime
 
 from .models import Profile
@@ -486,9 +488,9 @@ class UpdateUserProfileAvatarForm(forms.ModelForm):
     """
     Form for updating a user's profile image (avatar).
 
-    This form allows users to upload or clear their avatar image.
-    It includes a custom file input widget and a boolean field
-    to remove the avatar.
+    This form allows users to upload a new avatar image or remove
+    the current avatar. It includes a custom file input widget
+    and a boolean field to indicate avatar removal.
     """
 
     remove_avatar = forms.BooleanField(required=False)
@@ -517,29 +519,30 @@ class UpdateUserProfileAvatarForm(forms.ModelForm):
         """
         Validate and process the profile image uploaded by the user.
 
-        This method checks if an profile image is selected, ensuring that:
-        - If no image is selected and the remove_avatar checkbox
-          is not checked, a validation error is raised.
-        - If an image is selected, it verifies that the file format
-          is either PNG, JPG, or JPEG.
-        - If the file format is incorrect or the profile image is missing
-          when expected, a validation error is raised.
+        This method performs the following checks:
+        - Ensures an avatar is provided if 'remove_avatar' is not selected.
+        - Validates the file format to be either PNG, JPG, or JPEG.
+        - Verifies the image file's validity for Cloudinary resources
+          or local files.
 
         :return: The validated profile image file or None if no image
                  is selected and remove_avatar is checked.
-        :raises forms.ValidationError: If no image is selected and
-                                       remove_avatar is not checked, or if
-                                       the selected file has an invalid format.
+        :raises forms.ValidationError: If validation fails due to an empty
+                                       file, unsupported format, or invalid
+                                       image file.
         """
         avatar = self.cleaned_data.get('avatar')
 
-        # If no avatar is provided and remove_avatar is not checked,
-        # raise a validation error indicating that an avatar is required.
+        # Ensure avatar is provided if 'remove_avatar' is not selected
         if not avatar and not self.cleaned_data.get('remove_avatar', False):
             raise forms.ValidationError(self.transl["avatar_required"])
 
-        # If a profile image is provided, check its format.
         if avatar:
+            # Check if the file is empty
+            if hasattr(avatar, 'size') and avatar.size == 0:
+                raise forms.ValidationError(self.transl["avatar_empty"])
+
+            # Check the file format (PNG, JPG, or JPEG).
             if hasattr(avatar, 'name') and avatar.name:
                 if not avatar.name.lower().endswith(('.png', '.jpg', '.jpeg')):
                     raise forms.ValidationError(
@@ -547,15 +550,30 @@ class UpdateUserProfileAvatarForm(forms.ModelForm):
                     )
             else:
                 # If the avatar file is missing or invalid, raise an error.
-                raise forms.ValidationError(self.transl["avatar_invalid"])
+                raise forms.ValidationError(self.transl["avatar_required"])
+
+            # For Cloudinary resources, download and validate the image
+            if hasattr(avatar, 'url'):
+                try:
+                    avatar_file = avatar.download()  # Download image content
+                    img = Image.open(io.BytesIO(avatar_file))
+                except Exception:
+                    raise forms.ValidationError(self.transl["avatar_invalid"])
+            else:
+                # Verify the file's validity for local uploads
+                try:
+                    img = Image.open(avatar)
+                    img.verify()  # Check that this is a valid image file
+                except (IOError, SyntaxError):
+                    raise forms.ValidationError(self.transl["avatar_invalid"])
 
         return avatar
 
     def save(self, commit=True):
         """
-        Save the profile changes, including avatar removal if requested.
+        Save the profile changes, removing the avatar if requested.
 
-        If the remove_avatar checkbox is selected, set the avatar field to None
+        If 'remove_avatar' is selected, the avatar field is set to None
         before saving.
 
         :param commit: Whether to save the changes to the database.
@@ -565,8 +583,7 @@ class UpdateUserProfileAvatarForm(forms.ModelForm):
         """
         profile = super().save(commit=False)
 
-        # If the remove_avatar checkbox is checked,
-        # remove the avatar by setting it to None.
+        # Set avatar to None if 'remove_avatar' is selected
         if self.cleaned_data.get('remove_avatar', False):
             profile.avatar = None
 
