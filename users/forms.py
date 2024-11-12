@@ -544,7 +544,9 @@ class UpdateUserProfileAvatarForm(forms.ModelForm):
 
             # Check the file format (PNG, JPG, or JPEG).
             if hasattr(avatar, 'name') and avatar.name:
-                if not avatar.name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                if not avatar.name.lower().endswith(
+                    ('.png', '.jpg', '.jpeg', 'webp')
+                ):
                     raise forms.ValidationError(
                         self.transl["invalid_image_format"]
                     )

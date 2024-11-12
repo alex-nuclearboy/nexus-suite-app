@@ -82,13 +82,21 @@ class Profile(models.Model):
 
         # Check if avatar is a newly uploaded image (InMemoryUploadedFile)
         if isinstance(self.avatar, InMemoryUploadedFile):
-            # Resize the image if it's larger than 250x250
+            # Open the image
             image = Image.open(self.avatar)
+
+            # Convert to RGB if the image is in RGBA
+            if image.mode == 'RGBA':
+                image = image.convert('RGB')
+
+            # Resize the image if it's larger than 250x250
             if image.width > 250 or image.height > 250:
                 image.thumbnail((250, 250), Image.Resampling.LANCZOS)
                 output = BytesIO()
-                img_format = (
-                    'PNG' if 'png' in self.avatar.name.lower() else 'JPEG'
+                # Set the img_format based on the file extension,
+                # preserving the original format
+                img_format = 'PNG' if 'png' in self.avatar.name.lower() else (
+                    'WEBP' if 'webp' in self.avatar.name.lower() else 'JPEG'
                 )
                 image.save(output, format=img_format)
                 output.seek(0)  # Reset file pointer to the start
