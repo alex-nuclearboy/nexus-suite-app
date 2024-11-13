@@ -108,7 +108,7 @@ optgroup label {
     flex-direction: row;
     max-width: 1000px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 0 20px;
 }
 
 /* Main content area for personal data and password sections */
@@ -169,7 +169,7 @@ optgroup label {
     border: 1px solid var(--color-border);
     border-radius: 5px;
     display: flex;
-    align-items: center;    
+    align-items: center;
     /* padding: 4px; */
 }
 
