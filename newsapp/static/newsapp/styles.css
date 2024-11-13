@@ -5,11 +5,14 @@
     margin-bottom: 20px;
 }
 
-.success, .alert-success {
+.success,
+.alert-success {
     color: green;
 }
 
-.error, .alert-error, .errorlist {
+.error,
+.alert-error,
+.errorlist {
     color: crimson;
 }
 
@@ -26,12 +29,12 @@
     /* Color Variables */
     --color-primary: #212121;
     --color-secondary: #707070;
-    --color-brand: #0466C8;
-    --color-brand-dk: #023E7D;
+    --color-brand: #0466c8;
+    --color-brand-dk: #023e7d;
     --color-light: #ffffff;
     --color-bg-dark: #2f303a;
     --color-bg-light: #f5f4fa;
-    --color-bg-blue: #001F54;
+    --color-bg-blue: #001f54;
     --color-bg-gray: #f1f1f1;
     --color-border: #bdb4b4;
 
@@ -40,7 +43,7 @@
 
     /* Font Variables */
     --font-family-base: "Roboto", sans-serif;
-    --font-family-brand: 'Raleway', sans-serif;
+    --font-family-brand: "Raleway", sans-serif;
     --font-size-base: 16px;
     --font-size-lg: 24px;
     --font-size-md: 20px;
@@ -60,7 +63,7 @@ body {
     font-family: var(--font-family-base);
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-base);
-    letter-spacing: var(--letter-spacing);;
+    letter-spacing: var(--letter-spacing);
     line-height: var(--line-height);
 }
 
@@ -82,7 +85,8 @@ aside {
 /* ===================== */
 /* Heading Styles        */
 /* ===================== */
-h1, h2 {
+h1,
+h2 {
     color: var(--color-primary);
     font-weight: var(--font-weight-bold);
     margin: 0;
@@ -100,7 +104,7 @@ h2 {
 
 h3 {
     color: var(--color-secondary);
-    font-size: var(--font-size-base);;
+    font-size: var(--font-size-base);
     font-weight: var(--font-weight-base);
     margin: 0;
 }
@@ -197,7 +201,7 @@ header .nav-bar {
 }
 
 .avatar-img:hover {
-    transform: scale(1.10);
+    transform: scale(1.1);
 }
 
 /* ===================== */
@@ -382,7 +386,7 @@ button[type="reset"]:focus {
 .weather-box .weather-link {
     color: var(--color-brand);
     font-size: var(--font-size-md);
-    font-weight: var(--font-weight-bold);    
+    font-weight: var(--font-weight-bold);
     text-align: right;
     text-decoration: none;
 }
@@ -449,6 +453,20 @@ button[type="reset"]:focus {
 /* ===================== */
 /* Exchange Rates Page   */
 /* ===================== */
+.currency-description p {
+    margin-bottom: 40px;
+}
+
+.currency-description a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.currency-description a:hover {
+    color: var(--color-brand);
+    text-decoration: underline;
+}
+
 .exchange-rates-table {
     width: 100%;
     border-collapse: collapse;
@@ -687,7 +705,8 @@ button[type="reset"]:focus {
     margin-top: 2px;
 }
 
-.min-temp, .max-temp {
+.min-temp,
+.max-temp {
     flex: 1;
     color: var(--color-secondary);
     font-size: var(--font-size-sm);

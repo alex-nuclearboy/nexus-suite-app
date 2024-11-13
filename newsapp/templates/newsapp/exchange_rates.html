@@ -8,6 +8,22 @@
 
 <main>
     <h1>{{ translations.exchange_rates }}</h1>
+    <div class="currency-description">
+        {% if language == 'uk' %}
+        <p>
+            Ця сторінка надає актуальні курси валют до гривні, зокрема курси від <a href="https://bank.gov.ua/ua/markets/exchangerates">Національного банку України</a> та <a href="https://privatbank.ua">Приватбанку</a>.
+            Ви можете ознайомитися з курсами купівлі та продажу валют, а також скористатися вбудованим конвертером валют.
+            Інтерфейс дає змогу зручно порівняти різні валюти та перевести їх до гривні або між собою.</p>
+
+        {% else %}
+        <p>
+            This page provides the current exchange rates for the Ukrainian Hryvnia, including rates from the <a href="https://bank.gov.ua/en/markets/exchangerates">National Bank of Ukraine</a> and <a href="https://privatbank.ua/en">PrivatBank</a>.
+            You can view both the buying and selling exchange rates, as well as use the built-in currency converter.
+            The interface allows you to compare different currencies and convert them to Hryvnia or between currencies.
+        </p>
+        {% endif %}
+    </div>
+
     {% if error_message %}
     <div class="alert-error">
         {{ error_message }}
@@ -78,7 +94,8 @@
             {% endif %}
             <div class="form-group amount-field">
                 <label for="converted_amount">{{ translations.converted_amount }}</label>
-                <input type="text" id="converted_amount" name="converted_amount" value="{{ converted_amount }}" readonly class="converter-result">
+                <input type="text" id="converted_amount" name="converted_amount" value="{{ converted_amount }}" readonly
+                    class="converter-result">
             </div>
             <button type="submit" class="submit-button">{{ translations.convert }}</button>
         </form>
