@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import (
-    UserCreationForm, AuthenticationForm
+    UserCreationForm, AuthenticationForm,
+    PasswordResetForm, SetPasswordForm
 )
 
 import re
@@ -48,7 +49,7 @@ class UserRegistrationForm(UserCreationForm):
 
         super().__init__(*args, **kwargs)
 
-        # Update placeholder attributes for fields
+        # Update placeholder attributes for fields based on language setting
         self.fields['username'].widget.attrs.update({
             'placeholder': self.transl['enter_username'],
             'autofocus': True,
@@ -87,6 +88,8 @@ class UserRegistrationForm(UserCreationForm):
 
         :return: Validated username.
         :rtype: str
+        :raises forms.ValidationError: If a user with the provided username
+                                       already exists.
         """
         username = self.cleaned_data.get('username')
         if User.objects.filter(username=username).exists():
@@ -99,6 +102,8 @@ class UserRegistrationForm(UserCreationForm):
 
         :return: Validated email.
         :rtype: str
+        :raises forms.ValidationError: If a user with the provided email
+                                       already exists.
         """
         email = self.cleaned_data.get('email')
         if email and User.objects.filter(email=email).exists():
@@ -107,10 +112,13 @@ class UserRegistrationForm(UserCreationForm):
 
     def clean(self):
         """
-        Override clean method to use custom password validator.
+        Perform custom password validation to ensure passwords meet security
+        requirements and check for format compliance and matching.
 
         :return: Cleaned data with validated passwords.
         :rtype: dict
+        :raises forms.ValidationError: If password validation fails, errors
+                                       are attached to the appropriate fields.
         """
         cleaned_data = super().clean()
         password1 = cleaned_data.get("password1")
@@ -153,7 +161,7 @@ class UserLoginForm(AuthenticationForm):
 
         self.fields.pop('username', None)  # Remove default username field
 
-        # Update placeholder attributes for fields
+        # Update placeholder attributes for fields based on language setting
         self.fields['username_or_email'].widget.attrs.update({
             'placeholder': self.transl['enter_username_or_email'],
             'autofocus': True,
@@ -164,10 +172,12 @@ class UserLoginForm(AuthenticationForm):
 
     def clean_username_or_email(self):
         """
-        Validate if the provided username or email exists.
+        Validate if the provided username or email exists in the system.
 
         :return: Validated username or email.
         :rtype: str
+        :raises forms.ValidationError: If neither a matching email nor username
+                                       is found.
         """
         username_or_email = self.cleaned_data.get('username_or_email')
 
@@ -190,6 +200,8 @@ class UserLoginForm(AuthenticationForm):
 
         :return: Cleaned data with authentication result.
         :rtype: dict
+        :raises forms.ValidationError: If the username/email and password are
+                                       invalid, or if the account is inactive.
         """
         cleaned_data = super().clean()
         username_or_email = cleaned_data.get('username_or_email')
@@ -275,7 +287,7 @@ class UpdateUserProfileDataForm(forms.ModelForm):
         self.transl = translations.get(self.lan, translations['en'])
         super().__init__(*args, **kwargs)
 
-        # Update placeholders for each field
+        # Update placeholder attributes for fields based on language setting
         self.fields['first_name'].widget.attrs.update({
             'placeholder': self.transl['enter_first_name'],
         })
@@ -310,6 +322,8 @@ class UpdateUserProfileDataForm(forms.ModelForm):
 
         :return: Validated first name.
         :rtype: str
+        :raises forms.ValidationError: If the first name contains invalid
+                                       characters.
         """
         first_name = self.cleaned_data.get('first_name')
 
@@ -333,6 +347,8 @@ class UpdateUserProfileDataForm(forms.ModelForm):
 
         :return: Validated last name.
         :rtype: str
+        :raises forms.ValidationError: If the last name contains invalid
+                                       characters.
         """
         last_name = self.cleaned_data.get('last_name')
 
@@ -358,6 +374,10 @@ class UpdateUserProfileDataForm(forms.ModelForm):
 
         :return: Validated and formatted phone number.
         :rtype: str
+        :raises forms.ValidationError: If the phone number format is invalid,
+                                       if an international number does not have
+                                       enough digits, or if a local number does
+                                       not meet the minimum digit requirement.
         """
         phone_number = self.cleaned_data.get('phone_number')
 
@@ -398,8 +418,11 @@ class UpdateUserProfileDataForm(forms.ModelForm):
         """
         Validate the email field for uniqueness.
 
-        :return: Validated email if provided, or None if the field is empty.
-        :rtype: str or None
+        :return: Validated email if provided, or an empty string if the field
+                 is empty.
+        :rtype: str
+        :raises forms.ValidationError: If the provided email already exists
+                                       for another user.
         """
         email = self.cleaned_data.get("email")
 
@@ -639,7 +662,7 @@ class PasswordChangeForm(forms.Form):
         self.transl = translations.get(self.lan, translations['en'])
         super().__init__(*args, **kwargs)
 
-        # Update placeholders for each field
+        # Update placeholder attributes for fields based on language setting
         self.fields['current_password'].widget.attrs.update({
             'placeholder': self.transl['enter_current_password'],
         })
@@ -656,7 +679,7 @@ class PasswordChangeForm(forms.Form):
 
         :return: The validated current password.
         :rtype: str
-        :raises: forms.ValidationError: If the current password is incorrect.
+        :raises forms.ValidationError: If the current password is incorrect.
         """
         current_password = self.cleaned_data.get('current_password')
         if not self.user.check_password(current_password):
@@ -674,8 +697,8 @@ class PasswordChangeForm(forms.Form):
 
         :return: The validated cleaned data.
         :rtype: dict
-        :raises: forms.ValidationError: If the new passwords do not match
-                 or do not meet criteria.
+        :raises forms.ValidationError: If the new passwords do not match
+                                       or do not meet criteria.
         """
         cleaned_data = super().clean()
         new_password1 = cleaned_data.get('new_password1')
@@ -688,5 +711,110 @@ class PasswordChangeForm(forms.Form):
             for error in e.messages:
                 self.add_error('new_password1', error)
                 self.add_error('new_password2', error)
+
+        return cleaned_data
+
+
+class CustomPasswordResetForm(PasswordResetForm):
+    """
+    Custom form for password reset that allows users to enter either a username
+    or email to identify their account.
+    """
+    username_or_email = forms.CharField(
+        max_length=100,
+        required=True,
+        widget=forms.TextInput(attrs={'autofocus': True})
+    )
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the form and set translation based on the language.
+
+        :param args: Positional arguments passed to the form constructor.
+        :type args: tuple
+        :param kwargs: Keyword arguments passed to the form constructor.
+        :type kwargs: dict
+        """
+        self.lan = kwargs.pop('language', 'en')
+        self.transl = translations.get(self.lan, translations['en'])
+        super().__init__(*args, **kwargs)
+
+        # Update placeholder attributes for the field based on language setting
+        self.fields['username_or_email'].widget.attrs.update({
+            'placeholder': self.transl['enter_username_or_email'],
+        })
+
+    def clean_username_or_email(self):
+        """
+        Validate if the provided username or email exists in the system.
+
+        :return: Validated username or email.
+        :rtype: str
+        :raises forms.ValidationError: If neither a matching email nor username
+                                       is found.
+        """
+        username_or_email = self.cleaned_data.get('username_or_email')
+
+        # Determine if input is email or username
+        # and check existence in User model
+        if '@' in username_or_email:
+            user = User.objects.filter(email=username_or_email).first()
+        else:
+            user = User.objects.filter(username=username_or_email).first()
+
+        # Raise validation error if user not found
+        if not user:
+            raise forms.ValidationError(self.transl["invalid_credentials"])
+
+        return username_or_email
+
+
+class CustomSetPasswordForm(SetPasswordForm):
+    password1 = forms.CharField(max_length=50, required=True,
+                                widget=forms.PasswordInput())
+    password2 = forms.CharField(max_length=50, required=True,
+                                widget=forms.PasswordInput())
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the form and set translation based on the language.
+
+        :param args: Positional arguments passed to the form constructor.
+        :type args: tuple
+        :param kwargs: Keyword arguments passed to the form constructor.
+        :type kwargs: dict
+        """
+        self.lan = kwargs.pop('language', 'en')
+        self.transl = translations.get(self.lan, translations['en'])
+        super().__init__(*args, **kwargs)
+
+        # Update placeholder attributes for fields based on language setting
+        self.fields['password1'].widget.attrs.update({
+            'placeholder': self.transl['enter_password'],
+        })
+        self.fields['password2'].widget.attrs.update({
+            'placeholder': self.transl['enter_password_conf'],
+        })
+
+    def clean(self):
+        """
+        Perform custom password validation to ensure passwords meet security
+        requirements and check for format compliance and matching.
+
+        :return: Cleaned data with validated passwords.
+        :rtype: dict
+        :raises forms.ValidationError: If password validation fails, errors
+                                       are attached to the appropriate fields.
+        """
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+
+        try:
+            validate_passwords(password1, password2, language=self.lan)
+        except forms.ValidationError as e:
+            for error in e.messages:
+                self.add_error('password1', error)
+                self.add_error('password2', error)
 
         return cleaned_data
