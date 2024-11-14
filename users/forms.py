@@ -768,7 +768,7 @@ class CustomPasswordResetForm(PasswordResetForm):
             raise forms.ValidationError(self.transl["invalid_credentials"])
 
         # If it's a username, return the associated email
-        if not '@' in username_or_email:
+        if '@' not in username_or_email:
             username_or_email = user.email
 
         return username_or_email
