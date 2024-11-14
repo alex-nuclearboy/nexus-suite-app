@@ -83,6 +83,9 @@ translations = {
         "change_password": "Change Password",
         "password_changed_success": "Password changed successfully.",
         "incorrect_current_password": "Incorrect current password.",
+        "password_reset": "Password Reset",
+        "password_reset_complete": "Password Reset Complete",
+        "password_reset_complete_message": "Your password has been successfully reset. You can now log in with your new password."
     },
     'uk': {
         "sign_up": "Зареєструватися",
@@ -168,5 +171,8 @@ translations = {
         "change_password": "Змінити пароль",
         "password_changed_success": "Пароль успішно змінено.",
         "incorrect_current_password": "Невірний поточний пароль.",
+        "password_reset": "Скидання пароля",
+        "password_reset_complete": "Скидання пароля завершено",
+        "password_reset_complete_message": "Ваш пароль успішно скинуто. Тепер ви можете увійти з новим паролем.",
     }
 }
