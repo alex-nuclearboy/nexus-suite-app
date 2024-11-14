@@ -747,6 +747,7 @@ class CustomPasswordResetForm(PasswordResetForm):
     def clean_username_or_email(self):
         """
         Validate if the provided username or email exists in the system.
+        If username is entered, retrieve the associated email.
 
         :return: Validated username or email.
         :rtype: str
@@ -765,6 +766,10 @@ class CustomPasswordResetForm(PasswordResetForm):
         # Raise validation error if user not found
         if not user:
             raise forms.ValidationError(self.transl["invalid_credentials"])
+
+        # If it's a username, return the associated email
+        if not '@' in username_or_email:
+            username_or_email = user.email
 
         return username_or_email
 
