@@ -777,10 +777,10 @@ class CustomPasswordResetForm(PasswordResetForm):
 
 
 class CustomSetPasswordForm(SetPasswordForm):
-    password1 = forms.CharField(max_length=50, required=True,
-                                widget=forms.PasswordInput())
-    password2 = forms.CharField(max_length=50, required=True,
-                                widget=forms.PasswordInput())
+    new_password1 = forms.CharField(max_length=50, required=True,
+                                    widget=forms.PasswordInput())
+    new_password2 = forms.CharField(max_length=50, required=True,
+                                    widget=forms.PasswordInput())
 
     def __init__(self, *args, **kwargs):
         """
@@ -796,11 +796,11 @@ class CustomSetPasswordForm(SetPasswordForm):
         super().__init__(*args, **kwargs)
 
         # Update placeholder attributes for fields based on language setting
-        self.fields['password1'].widget.attrs.update({
-            'placeholder': self.transl['enter_password'],
+        self.fields['new_password1'].widget.attrs.update({
+            'placeholder': self.transl['enter_new_password'],
         })
-        self.fields['password2'].widget.attrs.update({
-            'placeholder': self.transl['enter_password_conf'],
+        self.fields['new_password2'].widget.attrs.update({
+            'placeholder': self.transl['enter_confirm_new_password'],
         })
 
     def clean(self):
@@ -814,14 +814,18 @@ class CustomSetPasswordForm(SetPasswordForm):
                                        are attached to the appropriate fields.
         """
         cleaned_data = super().clean()
-        password1 = cleaned_data.get("password1")
-        password2 = cleaned_data.get("password2")
+        new_password1 = cleaned_data.get("new_password1")
+        new_password2 = cleaned_data.get("new_password2")
+
+        # Check for None or empty passwords before proceeding
+        if not new_password1 or not new_password2:
+            raise forms.ValidationError(self.transl['password_required'])
 
         try:
-            validate_passwords(password1, password2, language=self.lan)
+            validate_passwords(new_password1, new_password2, language=self.lan)
         except forms.ValidationError as e:
             for error in e.messages:
-                self.add_error('password1', error)
-                self.add_error('password2', error)
+                self.add_error('new_password1', error)
+                self.add_error('new_password2', error)
 
         return cleaned_data
