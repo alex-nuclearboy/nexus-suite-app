@@ -171,11 +171,14 @@ class UserLoginForm(AuthenticationForm):
         """
         username_or_email = self.cleaned_data.get('username_or_email')
 
+        # Determine if input is email or username
+        # and check existence in User model
         if '@' in username_or_email:
             user = User.objects.filter(email=username_or_email).first()
         else:
             user = User.objects.filter(username=username_or_email).first()
 
+        # Raise validation error if user not found
         if not user:
             raise forms.ValidationError(self.transl["invalid_credentials"])
 
