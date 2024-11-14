@@ -739,6 +739,8 @@ class CustomPasswordResetForm(PasswordResetForm):
         self.transl = translations.get(self.lan, translations['en'])
         super().__init__(*args, **kwargs)
 
+        self.fields.pop('email', None)  # Remove default email field
+
         # Update placeholder attributes for the field based on language setting
         self.fields['username_or_email'].widget.attrs.update({
             'placeholder': self.transl['enter_username_or_email'],
