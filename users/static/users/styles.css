@@ -90,6 +90,19 @@ optgroup label {
     flex: 1;
 }
 
+/* Styling for the password reset link */
+a.forgot {
+    color: var(--color-brand);
+    text-decoration: none;
+    margin-top: 20px;
+    display: inline-block;
+    transition: color 0.3s ease;
+}
+
+a.forgot:hover {
+    color: var(--color-brand-dk);
+}
+
 /* Note text styling at the bottom of the form */
 .note {
     color: var(--color-secondary);

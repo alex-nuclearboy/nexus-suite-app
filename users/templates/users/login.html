@@ -47,6 +47,10 @@
             <button type="submit">{{ translations.login }}</button>
             <button type="reset">{{ translations.reset }}</button>
         </div>
+
+        <div>
+            <a href="{% url 'users:password_reset' %}" class="forgot">{{ translations.forgot_password }}</a>
+        </div>
     </form>
 
     <p class="note">
