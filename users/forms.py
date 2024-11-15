@@ -720,6 +720,7 @@ class CustomPasswordResetForm(PasswordResetForm):
     Custom form for password reset that allows users to enter either a username
     or email to identify their account.
     """
+
     username_or_email = forms.CharField(
         max_length=100,
         required=True,
@@ -739,7 +740,8 @@ class CustomPasswordResetForm(PasswordResetForm):
         self.transl = translations.get(self.lan, translations['en'])
         super().__init__(*args, **kwargs)
 
-        self.fields.pop('email', None)  # Remove default email field
+        # Remove the default email field from the form
+        self.fields.pop('email', None)
 
         # Update placeholder attributes for the field based on language setting
         self.fields['username_or_email'].widget.attrs.update({
@@ -758,14 +760,15 @@ class CustomPasswordResetForm(PasswordResetForm):
         """
         username_or_email = self.cleaned_data.get('username_or_email')
 
-        # Determine if input is email or username
-        # and check existence in User model
+        # Check if the input is an email or a username
         if '@' in username_or_email:
+            # Validate email and get the associated user
             user = User.objects.filter(email=username_or_email).first()
         else:
+            # Validate username and get the associated user
             user = User.objects.filter(username=username_or_email).first()
 
-        # Raise validation error if user not found
+        # Raise validation error if no user is found
         if not user:
             raise forms.ValidationError(self.transl["invalid_credentials"])
 
@@ -777,6 +780,10 @@ class CustomPasswordResetForm(PasswordResetForm):
 
 
 class CustomSetPasswordForm(SetPasswordForm):
+    """
+    Custom form for setting a new password.
+    """
+
     new_password1 = forms.CharField(max_length=50, required=True,
                                     widget=forms.PasswordInput())
     new_password2 = forms.CharField(max_length=50, required=True,
@@ -808,21 +815,33 @@ class CustomSetPasswordForm(SetPasswordForm):
         Perform custom password validation to ensure passwords meet security
         requirements and check for format compliance and matching.
 
-        :return: Cleaned data with validated passwords.
+        :return: Cleaned data with validated password fields.
         :rtype: dict
-        :raises forms.ValidationError: If password validation fails, errors
-                                       are attached to the appropriate fields.
+        :raises forms.ValidationError: If the passwords are invalid
+                                       or do not match.
         """
         cleaned_data = super().clean()
-        new_password1 = cleaned_data.get("new_password1")
-        new_password2 = cleaned_data.get("new_password2")
+        password1 = cleaned_data.get("new_password1")
+        password2 = cleaned_data.get("new_password2")
 
-        # Check for None or empty passwords before proceeding
-        if not new_password1 or not new_password2:
+        # If passwords are empty, fill them from raw data (POST data)
+        if not password1 or not password2:
+            password1 = self.data.get("new_password1", '')
+            password2 = self.data.get("new_password2", '')
+
+            # Manually add the passwords to cleaned_data
+            cleaned_data['new_password1'] = password1
+            cleaned_data['new_password2'] = password2
+
+        # Manual check for empty fields
+        if not password1 or not password2:
             raise forms.ValidationError(self.transl['password_required'])
 
+        print(cleaned_data)
+
+        # Perform custom password validation
         try:
-            validate_passwords(new_password1, new_password2, language=self.lan)
+            validate_passwords(password1, password2, language=self.lan)
         except forms.ValidationError as e:
             for error in e.messages:
                 self.add_error('new_password1', error)
