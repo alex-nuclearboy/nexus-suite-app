@@ -837,8 +837,6 @@ class CustomSetPasswordForm(SetPasswordForm):
         if not password1 or not password2:
             raise forms.ValidationError(self.transl['password_required'])
 
-        print(cleaned_data)
-
         # Perform custom password validation
         try:
             validate_passwords(password1, password2, language=self.lan)
