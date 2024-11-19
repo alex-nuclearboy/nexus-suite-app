@@ -5,24 +5,109 @@ from django.contrib.auth.forms import (
     UserCreationForm, AuthenticationForm,
     PasswordResetForm, SetPasswordForm
 )
+from django.utils.translation import gettext_lazy as _
 
 import re
 import io
 from PIL import Image
 from datetime import datetime
+from functools import wraps
 
 from .models import Profile
 from .utils.translations import translations
-from .utils.utils import validate_passwords
+from .utils.utils import (
+    validate_passwords, validate_username_format,
+    validate_email_format, validate_name_field
+)
 
 
-class UserRegistrationForm(UserCreationForm):
+def update_fields(translations_key):
+    """
+    Decorator to update field attributes like placeholders and labels
+    based on translations.
+    """
+    def decorator(init_method):
+        @wraps(init_method)
+        def wrapper(self, *args, **kwargs):
+            # Get language from kwargs
+            language = kwargs.pop('language', 'en')
+            # Save language to the instance for later use
+            self.language = language
+
+            # Fetch the translation map for the selected language
+            translation_map = translations.get(language, translations['en'])
+
+            # Call the original __init__ method
+            init_method(self, *args, **kwargs)
+
+            # Update placeholders and labels for fields
+            for field_name, key in translations_key.items():
+                if field_name in self.fields:
+                    # Set placeholder
+                    self.fields[field_name].widget.attrs.update({
+                        'placeholder': _(translation_map.get(key[0], ''))
+                    })
+                    # Set label
+                    self.fields[field_name].label = _(
+                        translation_map.get(key[1], field_name.capitalize())
+                    )
+
+        return wrapper
+    return decorator
+
+class TranslatableFormMixin:
+    """
+    Mixin for forms to handle field translation and attribute updates.
+    """
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the form and set translation based on the language.
+
+        :param args: Positional arguments passed to the form constructor.
+        :type args: tuple
+        :param kwargs: Keyword arguments passed to the form constructor.
+        :type kwargs: dict
+        """
+        self.lan = kwargs.pop('language', 'en')
+        self.transl = translations.get(self.lan, translations['en'])
+        super().__init__(*args, **kwargs)
+        self._update_field_attributes()
+        self._update_error_messages()
+
+    def _update_field_attributes(self):
+        """
+        Update placeholder and label attributes for form fields based on translations.
+        """
+        for field_name, field in self.fields.items():
+            # Set placeholder if translation key exists
+            placeholder_key = f"enter_{field_name}"
+            if placeholder_key in self.transl:
+                field.widget.attrs.update({'placeholder': self.transl[placeholder_key]})
+            
+            # Set label if translation key exists
+            label_key = f"{field_name}"
+            if label_key in self.transl:
+                field.label = self.transl[label_key]
+
+    def _update_error_messages(self):
+        """
+        Update error messages for validation based on translations.
+        """
+        if hasattr(self, 'error_messages'):
+            self.error_messages.update({
+                key: self.transl[key] for key in self.error_messages
+                if key in self.transl
+            })
+
+
+class UserRegistrationForm(TranslatableFormMixin, UserCreationForm):
     """
     Form for registering a new user.
     Includes additional fields for email, first name, and last name.
     """
     username = forms.CharField(max_length=100, required=True)
-    email = forms.EmailField(max_length=100, required=False)
+    email = forms.CharField(max_length=100, required=True,
+                            widget=forms.EmailInput())
     first_name = forms.CharField(max_length=30, required=False)
     last_name = forms.CharField(max_length=30, required=False)
     password1 = forms.CharField(max_length=50, required=True,
@@ -35,52 +120,63 @@ class UserRegistrationForm(UserCreationForm):
         fields = ['username', 'email', 'first_name', 'last_name',
                   'password1', 'password2']
 
-    def __init__(self, *args, **kwargs):
-        """
-        Initialize the form and set translation based on the language.
+    # def __init__(self, *args, **kwargs):
+    #     """
+    #     Initialize the form and set translation based on the language.
 
-        :param args: Positional arguments passed to the form constructor.
-        :type args: tuple
-        :param kwargs: Keyword arguments passed to the form constructor.
-        :type kwargs: dict
-        """
-        self.lan = kwargs.pop('language', 'en')
-        self.transl = translations.get(self.lan, translations['en'])
+    #     :param args: Positional arguments passed to the form constructor.
+    #     :type args: tuple
+    #     :param kwargs: Keyword arguments passed to the form constructor.
+    #     :type kwargs: dict
+    #     """
+    #     self.lan = kwargs.pop('language', 'en')
+    #     self.transl = translations.get(self.lan, translations['en'])
 
-        super().__init__(*args, **kwargs)
+    #     super().__init__(*args, **kwargs)
 
-        # Update placeholder attributes for fields based on language setting
-        self.fields['username'].widget.attrs.update({
-            'placeholder': self.transl['enter_username'],
-            'autofocus': True,
-        })
-        self.fields['email'].widget.attrs.update({
-            'placeholder': self.transl['enter_email'],
-        })
-        self.fields['first_name'].widget.attrs.update({
-            'placeholder': self.transl['enter_first_name'],
-        })
-        self.fields['last_name'].widget.attrs.update({
-            'placeholder': self.transl['enter_last_name'],
-        })
-        self.fields['password1'].widget.attrs.update({
-            'placeholder': self.transl['enter_password'],
-        })
-        self.fields['password2'].widget.attrs.update({
-            'placeholder': self.transl['enter_password_conf'],
-        })
+    #     # Update placeholder attributes for fields based on language setting
+    #     self.fields['username'].widget.attrs.update({
+    #         'placeholder': self.transl['enter_username'],
+    #         'autofocus': True,
+    #     })
+    #     self.fields['email'].widget.attrs.update({
+    #         'placeholder': self.transl['enter_email'],
+    #     })
+    #     self.fields['first_name'].widget.attrs.update({
+    #         'placeholder': self.transl['enter_first_name'],
+    #     })
+    #     self.fields['last_name'].widget.attrs.update({
+    #         'placeholder': self.transl['enter_last_name'],
+    #     })
+    #     self.fields['password1'].widget.attrs.update({
+    #         'placeholder': self.transl['enter_password'],
+    #     })
+    #     self.fields['password2'].widget.attrs.update({
+    #         'placeholder': self.transl['enter_password_conf'],
+    #     })
 
-        # Update error messages for validation
-        self.error_messages.update({
-            'username_exists': self.transl['username_exists'],
-            'email_exists': self.transl['email_exists'],
-            'password_mismatch': self.transl['password_mismatch'],
-            'password_too_short': self.transl['password_too_short'],
-            'password_too_common': self.transl['password_too_common'],
-            'password_entirely_numeric': self.transl[
-                'password_entirely_numeric'
-            ],
-        })
+    #     # Update error messages for validation
+    #     self.error_messages.update({
+    #         'username_exists': self.transl['username_exists'],
+    #         'email_exists': self.transl['email_exists'],
+    #         'password_mismatch': self.transl['password_mismatch'],
+    #         'password_too_short': self.transl['password_too_short'],
+    #         'password_too_common': self.transl['password_too_common'],
+    #         'password_entirely_numeric': self.transl[
+    #             'password_entirely_numeric'
+    #         ],
+    #     })
+
+    # @update_fields({
+    #     'username': ('enter_username', 'username'),
+    #     'email': ('enter_email', 'email'),
+    #     'first_name': ('enter_first_name', 'first_name'),
+    #     'last_name': ('enter_last_name', 'last_name'),
+    #     'password1': ('enter_password', 'password'),
+    #     'password2': ('enter_password_conf', 'password_conf'),
+    # })
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
 
     def clean_username(self):
         """
@@ -88,10 +184,15 @@ class UserRegistrationForm(UserCreationForm):
 
         :return: Validated username.
         :rtype: str
-        :raises forms.ValidationError: If a user with the provided username
-                                       already exists.
+        :raises forms.ValidationError: If the username is invalid
+                                       or already exists.
         """
         username = self.cleaned_data.get('username')
+
+        validate_username_format(
+            username, self.transl['invalid_username_format']
+        )
+
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError(self.transl["username_exists"])
         return username
@@ -102,13 +203,47 @@ class UserRegistrationForm(UserCreationForm):
 
         :return: Validated email.
         :rtype: str
-        :raises forms.ValidationError: If a user with the provided email
-                                       already exists.
+        :raises forms.ValidationError: If the email is invalid
+                                       or already exists.
         """
         email = self.cleaned_data.get('email')
+
+        validate_email_format(email, self.transl["invalid_email_format"])
+
+        # Check if the email already exists in the database
         if email and User.objects.filter(email=email).exists():
             raise forms.ValidationError(self.transl["email_exists"])
         return email
+
+    def clean_first_name(self):
+        """
+        Validate the first name to ensure it contains only valid characters
+        (letters and spaces, and allows international characters).
+
+        :return: Validated first name.
+        :rtype: str
+        :raises forms.ValidationError: If the first name contains invalid
+                                       characters.
+        """
+        first_name = self.cleaned_data.get('first_name', '')
+        return validate_name_field(
+            first_name, 'first name', self.transl['invalid_name']
+        )
+
+    def clean_last_name(self):
+        """
+        Validate the last name to ensure it contains only valid characters.
+
+        :return: Validated last name.
+        :rtype: str
+        :raises forms.ValidationError: If the last name contains invalid
+                                       characters.
+        """
+        last_name = self.cleaned_data.get('last_name')
+
+        return validate_name_field(
+            last_name, 'first name', self.transl['invalid_name']
+        )
 
     def clean(self):
         """
@@ -134,7 +269,7 @@ class UserRegistrationForm(UserCreationForm):
         return cleaned_data
 
 
-class UserLoginForm(AuthenticationForm):
+class UserLoginForm(TranslatableFormMixin, AuthenticationForm):
     """
     Form for user login, allowing authentication via username or email.
     """
@@ -144,31 +279,32 @@ class UserLoginForm(AuthenticationForm):
 
     class Meta:
         fields = ['username_or_email', 'password']
-
+    
     def __init__(self, *args, **kwargs):
         """
-        Initialize the form and set translation based on the language.
-
-        :param args: Positional arguments passed to the form constructor.
-        :type args: tuple
-        :param kwargs: Keyword arguments passed to the form constructor.
-        :type kwargs: dict
+        Remove default username field and initialize the form.
         """
-        self.lan = kwargs.pop('language', 'en')
-        self.transl = translations.get(self.lan, translations['en'])
-
         super().__init__(*args, **kwargs)
-
         self.fields.pop('username', None)  # Remove default username field
+        self.fields = {
+            'username_or_email': self.fields['username_or_email'],
+            'password': self.fields['password'],
+        }
 
-        # Update placeholder attributes for fields based on language setting
-        self.fields['username_or_email'].widget.attrs.update({
-            'placeholder': self.transl['enter_username_or_email'],
-            'autofocus': True,
-        })
-        self.fields['password'].widget.attrs.update({
-            'placeholder': self.transl['enter_password'],
-        })
+    # @update_fields({
+    #     'username_or_email': ('enter_username_or_email', 'username_or_email'),
+    #     'password': ('enter_password', 'password'),
+    # })
+    # def __init__(self, *args, **kwargs):
+    #     self.language = kwargs.pop('language', 'en')
+    #     self.transl = translations.get(self.language, translations['en'])
+    #     super().__init__(*args, **kwargs)
+
+    #     self.fields.pop('username', None)  # Remove default username field
+    #     self.fields = {
+    #         'username_or_email': self.fields['username_or_email'],
+    #         'password': self.fields['password'],
+    #     }
 
     def clean_username_or_email(self):
         """
@@ -177,20 +313,28 @@ class UserLoginForm(AuthenticationForm):
         :return: Validated username or email.
         :rtype: str
         :raises forms.ValidationError: If neither a matching email nor username
-                                       is found.
+                                       is found or invalid format is provided.
         """
         username_or_email = self.cleaned_data.get('username_or_email')
 
-        # Determine if input is email or username
-        # and check existence in User model
-        if '@' in username_or_email:
-            user = User.objects.filter(email=username_or_email).first()
-        else:
-            user = User.objects.filter(username=username_or_email).first()
+        language = self.language  # Отримує поточну мову
+        print(f"Active language: {language}")
 
-        # Raise validation error if user not found
-        if not user:
-            raise forms.ValidationError(self.transl["invalid_credentials"])
+        # Determine if input is email or username
+        if '@' in username_or_email:
+            try:
+                validate_email_format(
+                    username_or_email, self.transl["invalid_email_format"]
+                )
+            except forms.ValidationError as e:
+                self.add_error('username_or_email', e)
+        else:
+            try:
+                validate_username_format(
+                    username_or_email, self.transl['invalid_username_format']
+                )
+            except forms.ValidationError as e:
+                self.add_error('username_or_email', e)
 
         return username_or_email
 
@@ -208,20 +352,21 @@ class UserLoginForm(AuthenticationForm):
         password = cleaned_data.get('password')
 
         if username_or_email and password:
-            user = User.objects.filter(username=username_or_email).first() or \
-                   User.objects.filter(email=username_or_email).first()
+            user = (
+                User.objects.filter(username=username_or_email).first()
+                or User.objects.filter(email=username_or_email).first()
+            )
 
             if not user or not authenticate(
                 username=user.username, password=password
             ):
+                self.add_error('password', self.transl["invalid_credentials"])
                 raise forms.ValidationError(self.transl["invalid_credentials"])
+            elif not user.is_active:
+                self.add_error(None, self.transl['inactive_account'])
+                raise forms.ValidationError(self.transl['inactive_account'])
 
             self.user_cache = user
-
-            if not self.user_cache.is_active:
-                raise forms.ValidationError(
-                    self.transl['inactive_account'], code='inactive'
-                )
 
         return cleaned_data
 
@@ -246,6 +391,10 @@ class UpdateUserProfileDataForm(forms.ModelForm):
         ('other', 'Other'),
     ]
 
+    email = forms.CharField(
+        required=False,
+        widget=forms.EmailInput(),
+    )
     date_of_birth = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={'type': 'date'}),
@@ -262,7 +411,6 @@ class UpdateUserProfileDataForm(forms.ModelForm):
             'last_name': forms.TextInput(),
             'gender': forms.Select(),
             'phone_number': forms.TextInput(),
-            'email': forms.EmailInput(),
             'address': forms.Textarea(attrs={'rows': 2}),
             'bio': forms.Textarea(attrs={'rows': 4}),
         }
@@ -325,21 +473,10 @@ class UpdateUserProfileDataForm(forms.ModelForm):
         :raises forms.ValidationError: If the first name contains invalid
                                        characters.
         """
-        first_name = self.cleaned_data.get('first_name')
-
-        # If first name is empty, skip validation and return None
-        if not first_name:
-            return first_name
-
-        # Check if the first name contains only letters (and spaces)
-        if not re.match(r'^[a-zA-Zа-яА-ЯёЁіІїЇєЄєА-Я\s]+$', first_name):
-            raise forms.ValidationError(self.transl['invalid_name'])
-
-        # Capitalize the first letter of each word
-        # and ensure the rest are lowercase
-        first_name = first_name.strip().title()
-
-        return first_name
+        first_name = self.cleaned_data.get('first_name', '')
+        return validate_name_field(
+            first_name, 'first name', self.transl['invalid_name']
+        )
 
     def clean_last_name(self):
         """
@@ -352,19 +489,9 @@ class UpdateUserProfileDataForm(forms.ModelForm):
         """
         last_name = self.cleaned_data.get('last_name')
 
-        # If last name is empty, skip validation and return None
-        if not last_name:
-            return last_name
-
-        # Check if the last name contains only letters (and spaces)
-        if not re.match(r'^[a-zA-Zа-яА-ЯёЁіІїЇєЄєА-Я\s]+$', last_name):
-            raise forms.ValidationError(self.transl['invalid_name'])
-
-        # Capitalize the first letter of each word
-        # and ensure the rest are lowercase
-        last_name = last_name.strip().title()
-
-        return last_name
+        return validate_name_field(
+            last_name, 'first name', self.transl['invalid_name']
+        )
 
     def clean_phone_number(self):
         """
@@ -428,6 +555,10 @@ class UpdateUserProfileDataForm(forms.ModelForm):
 
         # If email is provided, ensure it's in the correct format
         if email:
+            validate_email_format(
+                email, self.transl["invalid_email_format"]
+            )
+
             # Check for duplicate emails
             if (
                 User.objects.filter(email=email)
@@ -755,22 +886,39 @@ class CustomPasswordResetForm(PasswordResetForm):
 
         :return: Validated username or email.
         :rtype: str
-        :raises forms.ValidationError: If neither a matching email nor username
-                                       is found.
+        :raises forms.ValidationError: If neither a matching email nor
+                                       username is found, or if the input
+                                       format is invalid.
+
         """
         username_or_email = self.cleaned_data.get('username_or_email')
 
+        # Regular expression for emails
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        # Regular expression for usernames
+        username_regex = r'^[a-zA-Z0-9_-]+$'
+
         # Check if the input is an email or a username
         if '@' in username_or_email:
+            if not re.match(email_regex, username_or_email):
+                raise forms.ValidationError(
+                    self.transl["invalid_email_format"]
+                )
             # Validate email and get the associated user
             user = User.objects.filter(email=username_or_email).first()
         else:
+            if not re.match(username_regex, username_or_email):
+                raise forms.ValidationError(
+                    self.transl["invalid_username_format"]
+                )
             # Validate username and get the associated user
             user = User.objects.filter(username=username_or_email).first()
 
         # Raise validation error if no user is found
         if not user:
-            raise forms.ValidationError(self.transl["invalid_credentials"])
+            raise forms.ValidationError(
+                self.transl["password_reset_no_account"]
+            )
 
         # If it's a username, return the associated email
         if '@' not in username_or_email:
