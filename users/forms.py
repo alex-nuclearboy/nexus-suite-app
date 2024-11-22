@@ -19,71 +19,45 @@ from .utils.utils import (
 )
 
 
-def update_fields(translations_key):
-    """
-    Decorator to update field attributes like placeholders and labels
-    based on translations.
-    """
-    def decorator(init_method):
-        @wraps(init_method)
-        def wrapper(self, *args, **kwargs):
-            # Get language from kwargs
-            language = kwargs.pop('language', 'en')
-            # Save language to the instance for later use
-            self.language = language
-
-            # Fetch the translation map for the selected language
-            translation_map = translations.get(language, translations['en'])
-
-            # Call the original __init__ method
-            init_method(self, *args, **kwargs)
-
-            # Update placeholders and labels for fields
-            for field_name, key in translations_key.items():
-                if field_name in self.fields:
-                    # Set placeholder
-                    self.fields[field_name].widget.attrs.update({
-                        'placeholder': _(translation_map.get(key[0], ''))
-                    })
-                    # Set label
-                    self.fields[field_name].label = _(
-                        translation_map.get(key[1], field_name.capitalize())
-                    )
-
-        return wrapper
-    return decorator
-
 class TranslatableFormMixin:
     """
-    Mixin for forms to handle field translation and attribute updates.
+    Mixin for forms to handle field translation and dynamic attribute updates.
+
+    :param language: Language code for translations (default: 'en').
+    :type language: str
     """
+
     def __init__(self, *args, **kwargs):
         """
-        Initialize the form and set translation based on the language.
+        Initialize the form, set the translation dictionary,
+        and update field attributes.
 
         :param args: Positional arguments passed to the form constructor.
         :type args: tuple
         :param kwargs: Keyword arguments passed to the form constructor.
         :type kwargs: dict
         """
-        self.lan = kwargs.pop('language', 'en')
-        self.transl = translations.get(self.lan, translations['en'])
+        self.language = kwargs.pop('language', 'en')
+        self.transl = translations.get(self.language, translations['en'])
         super().__init__(*args, **kwargs)
         self._update_field_attributes()
         self._update_error_messages()
 
     def _update_field_attributes(self):
         """
-        Update placeholder and label attributes for form fields based on translations.
+        Update placeholders and labels for form fields
+        based on translation keys.
         """
         for field_name, field in self.fields.items():
-            # Set placeholder if translation key exists
+            # Set placeholder
             placeholder_key = f"enter_{field_name}"
             if placeholder_key in self.transl:
-                field.widget.attrs.update({'placeholder': self.transl[placeholder_key]})
-            
-            # Set label if translation key exists
-            label_key = f"{field_name}"
+                field.widget.attrs.update(
+                    {'placeholder': self.transl[placeholder_key]}
+                )
+
+            # Set label
+            label_key = f"label_{field_name}"
             if label_key in self.transl:
                 field.label = self.transl[label_key]
 
