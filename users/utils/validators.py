@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 
 from django.forms import ValidationError
 from django.contrib.auth.password_validation import (
@@ -9,25 +10,34 @@ from django.contrib.auth.password_validation import (
 from .translations import translations
 
 
+USERNAME_REGEX = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]*$')
+EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+PHONE_NUMBER_REGEX = re.compile(r'^\+?\d+$')
+
+
+def get_translations(language: str) -> dict:
+    return translations.get(language, translations['en'])
+
+
 def validate_passwords(
         password1: str, password2: str, language: str = 'en'
 ) -> None:
     """
-    Validate passwords for equality and complexity requirements.
+    Validate that the provided passwords are equal
+    and meet the complexity requirements.
 
-    This function ensures that two provided passwords match and meet
-    the complexity requirements as defined by Django's password validators.
+    This function ensures that the two provided passwords match and meet the
+    complexity requirements as defined by Django's password validators.
 
-    :param password1: The primary password input.
-    :param password2: The confirmation password input.
+    :param password1: The first password input.
+    :param password2: The second (confirmation) password input.
     :param language: Language code for error message translations,
                      defaults to 'en'.
 
     :raises ValidationError: If the passwords do not match or fail
                              to meet complexity requirements.
     """
-    # Fetch translations based on the specified language
-    transl = translations.get(language, translations['en'])
+    transl = get_translations(language)
 
     # Ensure passwords match
     if password1 and password2 and password1 != password2:
@@ -55,12 +65,12 @@ def validate_passwords(
                 # For other error messages, use the original message
                 error_messages.append(message)
 
-        # If there are any error messages, raise a validation error
+        # Raise ValidationError with translated error messages
         if error_messages:
             raise ValidationError(error_messages)
 
 
-def validate_username_format(username: str, error_message: str) -> None:
+def validate_username_format(username: str, language: str = 'en') -> None:
     """
     Validate the format of a username.
 
@@ -69,60 +79,74 @@ def validate_username_format(username: str, error_message: str) -> None:
     - Contain only letters, numbers, or underscores.
 
     :param username: The username to validate.
-    :param error_message: Custom error message to raise on validation failure.
+    :param language: Language code for error message translations,
+                     defaults to 'en'.
 
     :raises ValidationError: If the username is invalid.
     """
-    username_regex = r'^[a-zA-Z][a-zA-Z0-9_]*$'
-    if not re.match(username_regex, username):
-        raise ValidationError(error_message)
+    transl = get_translations(language)
+
+    if not USERNAME_REGEX.match(username):
+        raise ValidationError(transl['invalid_username_format'])
 
 
-def validate_email_format(email: str, error_message: str) -> None:
+def validate_email_format(email: str, language: str = 'en') -> None:
     """
     Validate the format of an email address.
 
     A valid email must:
     - Have a standard email format (e.g., user@example.com).
-    - Use only alphanumeric characters, dots, underscores, or hyphens
-      before the "@" symbol.
+    - Contain only alphanumeric characters, dots, underscores,
+      or hyphens before the "@" symbol.
 
     :param email: The email address to validate.
-    :param error_message: Custom error message to raise on validation failure.
+    :param language: Language code for error message translations,
+                     defaults to 'en'.
 
     :raises ValidationError: If the email is invalid.
     """
-    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    if not re.match(email_regex, email):
-        raise ValidationError(error_message)
+    transl = get_translations(language)
+
+    if not EMAIL_REGEX.match(email):
+        raise ValidationError(transl['invalid_email_format'])
 
 
-def validate_name_field(value: str, error_message: str) -> str:
+def validate_name_field(value: str, language: str = 'en') -> str:
     """
-    Validate a name field to ensure it contains only alphabetic
-    characters and spaces.
+    Validate that a name contains only alphabetic characters and spaces,
+    and format each word with the first letter capitalized and the rest
+    in lowercase.
 
-    This function ensures that a name field is either empty or consists
-    only of letters (a-z, A-Z, а-я, А-Я) and optional spaces.
+    This function ensures that a name is either empty or consists
+    only of letters (a-z, A-Z, а-я, А-Я) and optional spaces,
+    and then formats each word with the first letter capitalized.
 
-    :param value: The input value to validate
-    :param error_message: Custom error message to raise on validation failure.
+    :param value: The input value to validate and format.
+    :param language: Language code for error message translations,
+                     defaults to 'en'.
 
-    :return: The stripped input value if valid.
+    :return: The formatted and validated name.
+
     :raises ValidationError: If the value does not meet format requirements.
     """
+    transl = get_translations(language)
+
     if not value:
-        return value  # Allow empty values if deletion is permitted
+        return value  # Allow empty values
 
     if not value.isalpha() and not all(
         char.isalpha() or char.isspace() for char in value
     ):
-        raise ValidationError(error_message)
+        raise ValidationError(transl['invalid_name_format'])
 
-    return value.strip()
+    # Format each word with the first letter capitalized
+    # and the rest in lowercase
+    formatted_value = ' '.join([word.capitalize() for word in value.split()])
+
+    return formatted_value.strip()
 
 
-def validate_phone_number(phone_number: str, translations: dict) -> str:
+def validate_phone_number(phone_number: str, language: str = 'en') -> str:
     """
     Validate and format a phone number.
 
@@ -132,31 +156,69 @@ def validate_phone_number(phone_number: str, translations: dict) -> str:
     - For international numbers, have at least 10 digits after the '+' sign.
 
     :param phone_number: The phone number to validate.
-    :param translations: A dictionary with translation keys for error messages.
+    :param language: Language code for error message translations,
+                     defaults to 'en'.
 
     :return: The formatted and validated phone number.
+
     :raises ValidationError: If the phone number is invalid.
     """
+    transl = get_translations(language)
+
     # Remove spaces, dashes, and parentheses
     formatted_phone = re.sub(r'[\s\-\(\)]', '', phone_number)
 
     # Validate phone number format
-    if not re.match(r'^\+?\d+$', formatted_phone):
-        raise ValidationError(translations['invalid_phone_number'])
+    if not PHONE_NUMBER_REGEX.match(formatted_phone):
+        raise ValidationError(transl['invalid_phone_number'])
 
     # Validate international numbers
     if formatted_phone.startswith('+'):
         if len(formatted_phone) < 11:
-            raise ValidationError(
-                translations['invalid_international_phone_number']
-            )
+            raise ValidationError(transl['invalid_international_phone_number'])
         if not formatted_phone[1:].isdigit():
-            raise ValidationError(
-                translations['phone_number_after_plus_digits']
-            )
+            raise ValidationError(transl['phone_number_after_plus_digits'])
 
     # Validate local numbers
     elif len(formatted_phone) < 4:
-        raise ValidationError(translations['invalid_phone_number_min_length'])
+        raise ValidationError(transl['invalid_phone_number_min_length'])
 
     return formatted_phone
+
+
+def validate_date_of_birth(
+        date_of_birth: str, language: str = 'en'
+) -> datetime.date:
+    """
+    Validate the date of birth to ensure it's in a valid format,
+    not in the future, and not too old.
+
+    :param date_of_birth: The date of birth to validate.
+    :param language: Language code for error message translations,
+                     defaults to 'en'.
+
+    :return: The validated date of birth.
+
+    :raises ValidationError: If the date of birth is invalid.
+    """
+    transl = get_translations(language)
+
+    if not date_of_birth:
+        return None  # Allow deletion by returning None
+
+    # Check the date format
+    try:
+        if isinstance(date_of_birth, str):
+            date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
+    except ValueError:
+        raise ValidationError(transl['invalid_date'])
+
+    # Check for future dates
+    if date_of_birth > datetime.today().date():
+        raise ValidationError(transl['dob_in_future'])
+
+    # Check if the date is too old
+    if date_of_birth < datetime(1900, 1, 1).date():
+        raise ValidationError(transl['dob_too_old'])
+
+    return date_of_birth
