@@ -21,7 +21,6 @@ form {
     color: var(--color-primary);
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-bold);
-    margin-bottom: 4px;
     cursor: pointer;
 }
 
@@ -58,7 +57,7 @@ form {
 }
 
 /* Style individual options */
-optgroup label {
+.optgroup label {
     color: var(--color-secondary);
 }
 
@@ -74,10 +73,6 @@ optgroup label {
     cursor: pointer;
 }
 
-.asterisk {
-    color: crimson;
-}
-
 /* Grid styling for buttons */
 .grid {
     display: flex;
@@ -91,15 +86,19 @@ optgroup label {
 }
 
 /* Styling for the password reset link */
-a.forgot {
+.forgot {
+    margin-top: 20px;
+    display: inline-block;
+}
+
+.forgot a {
     color: var(--color-brand);
     text-decoration: none;
-    margin-top: 20px;
     display: inline-block;
     transition: color 0.3s ease;
 }
 
-a.forgot:hover {
+.forgot a:hover {
     color: var(--color-brand-dk);
 }
 
@@ -109,6 +108,10 @@ a.forgot:hover {
     font-size: var(--font-size-sm);
     text-align: center;
     margin-top: 20px;
+}
+
+.asterisk {
+    color: crimson;
 }
 
 /* ======================== */
