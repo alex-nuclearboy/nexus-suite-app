@@ -1,12 +1,18 @@
+// Function to show the password
+
 document.addEventListener("DOMContentLoaded", function () {
     const togglePasswords = document.querySelectorAll('.toggle-password');
 
-    togglePasswords.forEach(toggle => {
-        toggle.addEventListener('click', function () {
-            const target = this.getAttribute('data-target');
-            const passwordField = document.querySelector(`input[name="${target}"]`);
-            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordField.setAttribute('type', type);
+    togglePasswords.forEach(function (togglePassword) {
+        // Add an event listener for each checkbox
+        togglePassword.addEventListener('change', function () {
+            const targetId = togglePassword.dataset.target; // Get the password field id
+            const passwordField = document.getElementById(targetId); // Find this field by id
+
+            // Switch the password field type between ‘password’ and ‘text’
+            if (passwordField) {
+                passwordField.type = togglePassword.checked ? 'text' : 'password';
+            }
         });
     });
 });
