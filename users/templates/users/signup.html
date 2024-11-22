@@ -16,81 +16,46 @@
     {% if messages %}
     <div class="messages">
         {% for message in messages %}
-        {% if message.tags == 'success' %}
-        <div class="alert-success">{{ message }}</div>
-        {% elif message.tags == 'error' %}
-        <div class="alert-error">{{ message }}</div>
-        {% endif %}
+        <div class="alert-{{ message.tags }}">{{ message }}</div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <div>
-        <h1>{{ translations.sign_up }}</h1>
-    </div>
+    <h1>{{ translations.sign_up }}</h1>
 
     <form method="POST" action="{% url 'users:signup' %}">
         {% csrf_token %}
 
-        <div class="form-field">
-            <label for="id_username">{{ translations.username }}<span class="asterisk">*</span>:</label>
-            {{ form.username }}
-            {% if form.username.errors %}
-            <ul class="errorlist">
-                {% for error in form.username.errors %}
-                <li">{{ error }}</li>
-                    {% endfor %}
-            </ul>
-            {% endif %}
-        </div>
+        <div class="form-fields">
+            {% for field in form %}
+                <!-- <div class="form-field"> -->
+                    <div class="form-field">
 
-        <div class="form-field">
-            <label for="id_email">{{ translations.email }}:</label>
-            {{ form.email }}
-            {% if form.email.errors %}
-            <ul class="errorlist">
-                {% for error in form.email.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        </div>
+                    <label for="{{ field.id_for_label }}">{{ field.label|safe }}</label>
+                    {{ field }}
 
-        <div class="form-field">
-            <label for="id_first_name">{{ translations.first_name }}:</label>
-            {{ form.first_name }}
-        </div>
+                    {% if field.name == 'password1' %}
+                        <!-- Checkbox for showing password1 -->
+                        <label>
+                            <input type="checkbox" class="toggle-password" data-target="{{ field.id_for_label }}">
+                            <span class="checkbox-label">{{ translations.show_password }}</span>
+                        </label>
+                    {% endif %}
 
-        <div class="form-field">
-            <label for="id_last_name">{{ translations.last_name }}:</label>
-            {{ form.last_name }}
-        </div>
+                    {% if field.name == 'password2' %}
+                        <!-- Checkbox for showing password2 -->
+                        <label>
+                            <input type="checkbox" class="toggle-password" data-target="{{ field.id_for_label }}">
+                            <span class="checkbox-label">{{ translations.show_password }}</span>
+                        </label>
+                    {% endif %}
 
-        <div class="form-field">
-            <label for="id_password1">{{ translations.password }}<span class="asterisk">*</span>:</label>
-            {{ form.password1 }}
-            <label>
-                <input type="checkbox" class="toggle-password" data-target="password1">
-                <span class="checkbox-label">{{ translations.show_password }}</span>
-            </label>
+                    {% if field.errors %}
+                        <div class="error">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
         </div>
-
-        <div class="form-field">
-            <label for="id_password2">{{ translations.password_conf }}<span class="asterisk">*</span>:</label>
-            {{ form.password2 }}
-            <label>
-                <input type="checkbox" class="toggle-password" data-target="password2">
-                <span class="checkbox-label">{{ translations.show_password }}</span>
-            </label>
-            {% if form.password2.errors %}
-            <ul class="errorlist">
-                {% for error in form.password2.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        </div>
-
 
         <div class="grid button-group">
             <button type="submit">{{ translations.sign_up }}</button>
