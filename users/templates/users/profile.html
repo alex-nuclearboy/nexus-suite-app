@@ -33,109 +33,21 @@
                     {% csrf_token %}
                     <h2>{{ translations.personal_data }}</h2>
 
-                    <!-- First Name Field -->
-                    <div class="form-field">
-                        <label for="id_first_name">{{ translations.first_name }}:</label>
-                        {{ data_form.first_name }}
-                        {% if data_form.errors.first_name %}
-                        <ul class="errorlist">
-                            {% for error in data_form.errors.first_name %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
+                    {% for field in data_form %}
+                        <div class="form-field">
+                            <label for="{{ field.id_for_label }}">{{ field.label|safe }}</label>
+                            {{ field }}
 
-                    <!-- Last Name Field -->
-                    <div class="form-field">
-                        <label for="id_last_name">{{ translations.last_name }}:</label>
-                        {{ data_form.last_name }}
-                        {% if data_form.errors.last_name %}
-                        <ul class="errorlist">
-                            {% for error in data_form.errors.last_name %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
+                            {% if field.errors %}
+                                <ul class="errorlist">
+                                    {% for error in field.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
 
-                    <!-- Gender Field -->
-                    <div class="form-field">
-                        <label for="id_gender">{{ translations.gender }}:</label>
-                        {{ data_form.gender }}
-                        {% if data_form.errors.gender %}
-                        <ul class="errorlist">
-                            {% for error in data_form.errors.gender %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
-
-                    <!-- Date of Birth Field -->
-                    <div class="form-field">
-                        <label for="id_date_of_birth">{{ translations.date_of_birth }}:</label>
-                        {{ data_form.date_of_birth }}
-                        {% if data_form.errors.date_of_birth %}
-                        <ul class="errorlist">
-                            {% for error in data_form.errors.date_of_birth %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
-
-                    <!-- Phone Number Field -->
-                    <div class="form-field">
-                        <label for="id_phone_number">{{ translations.phone_number }}:</label>
-                        {{ data_form.phone_number }}
-                        {% if data_form.errors.phone_number %}
-                        <ul class="errorlist">
-                            {% for error in data_form.errors.phone_number %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
-
-                    <!-- Email Field -->
-                    <div class="form-field">
-                        <label for="id_email">{{ translations.email }}:</label>
-                        {{ data_form.email }}
-                        {% if data_form.errors.email %}
-                        <ul class="errorlist">
-                            {% for error in data_form.errors.email %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
-
-                    <!-- Address Field -->
-                    <div class="form-field">
-                        <label for="id_address">{{ translations.address }}:</label>
-                        {{ data_form.address }}
-                        {% if data_form.errors.address %}
-                        <ul class="errorlist">
-                            {% for error in data_form.errors.address %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
-
-                    <!-- Bio Field -->
-                    <div class="form-field">
-                        <label for="id_bio">{{ translations.bio }}:</label>
-                        {{ data_form.bio }}
-                        {% if data_form.errors.bio %}
-                        <ul class="errorlist">
-                            {% for error in data_form.errors.bio %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
                     <div class="grid">
                         <button type="submit" name="update_profile">{{ translations.update_data }}</button>
                         <button type="reset">{{ translations.reset }}</button>
@@ -148,48 +60,24 @@
                 <form method="post">
                     {% csrf_token %}
                     <h2>{{ translations.change_password_title }}</h2>
-                    <div class="form-field">
-                        <label for="id_current_password">{{ translations.current_password }}<span
-                                class="asterisk">*</span>:</label>
-                        {{ password_form.current_password }}
-                        <label>
-                            <input type="checkbox" class="toggle-password" data-target="current_password">
-                            <span class="checkbox-label">{{ translations.show_password }}</span>
-                        </label>
-                        {% if password_form.errors.current_password %}
-                        <ul class="errorlist">
-                            {% for error in password_form.errors.current_password %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
-                    <!-- New Password Fields -->
-                    <div class="form-field">
-                        <label for="id_new_password1">{{ translations.new_password }}<span
-                                class="asterisk">*</span>:</label>
-                        {{ password_form.new_password1 }}
-                        <label>
-                            <input type="checkbox" class="toggle-password" data-target="new_password1">
-                            <span class="checkbox-label">{{ translations.show_password }}</span>
-                        </label>
-                    </div>
-                    <div class="form-field">
-                        <label for="id_new_password2">{{ translations.confirm_new_password }}<span
-                                class="asterisk">*</span>:</label>
-                        {{ password_form.new_password2 }}
-                        <label>
-                            <input type="checkbox" class="toggle-password" data-target="new_password2">
-                            <span class="checkbox-label">{{ translations.show_password }}</span>
-                        </label>
-                        {% if password_form.errors.new_password1 %}
-                        <ul class="errorlist">
-                            {% for error in password_form.errors.new_password1 %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
+                    {% for field in password_form %}
+                        <div class="form-field">
+                            <label for="{{ field.id_for_label }}">{{ field.label|safe }}</label>
+                            {{ field }}
+                            <label>
+                                <input type="checkbox" class="toggle-password" data-target="{{ field.id_for_label }}">
+                                <span class="checkbox-label">{{ translations.show_password }}</span>
+                            </label>
+                            {% if field.errors %}
+                                <ul class="errorlist">
+                                    {% for error in field.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
                     <div class="grid">
                         <button type="submit" name="change_password">{{ translations.change_password }}</button>
                         <button type="reset">{{ translations.reset }}</button>
@@ -207,7 +95,11 @@
                 {% csrf_token %}
                 <h2>{{ translations.avatar }}</h2>
                 <div class="avatar">
-                    <img src="{{ user.profile.avatar.url }}" alt="Avatar of {{ user.username }}" />
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" alt="Avatar of {{ user.username }}" />
+                    {% else %}
+                        <img src="https://res.cloudinary.com/dhyxiv6lz/image/upload/v1730812731/nexussuiteapp/profile_images/default_avatar_a1kzyk.png" alt="Default Avatar" />
+                    {% endif %}
                 </div>
                 <div class="form-field file-input">
                     <label for="id_avatar">{{ translations.upload_new_avatar }}</label>
