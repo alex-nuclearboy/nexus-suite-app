@@ -5,13 +5,11 @@ from django.contrib.auth.forms import (
     UserCreationForm, AuthenticationForm,
     PasswordResetForm, SetPasswordForm
 )
-from django.utils.translation import gettext_lazy as _
 
 import re
 import io
 from PIL import Image
 from datetime import datetime
-from functools import wraps
 
 from .models import Profile
 from .utils.translations import translations
@@ -119,64 +117,6 @@ class UserRegistrationForm(TranslatableFormMixin, UserCreationForm):
         model = User
         fields = ['username', 'email', 'first_name', 'last_name',
                   'password1', 'password2']
-
-    # def __init__(self, *args, **kwargs):
-    #     """
-    #     Initialize the form and set translation based on the language.
-
-    #     :param args: Positional arguments passed to the form constructor.
-    #     :type args: tuple
-    #     :param kwargs: Keyword arguments passed to the form constructor.
-    #     :type kwargs: dict
-    #     """
-    #     self.lan = kwargs.pop('language', 'en')
-    #     self.transl = translations.get(self.lan, translations['en'])
-
-    #     super().__init__(*args, **kwargs)
-
-    #     # Update placeholder attributes for fields based on language setting
-    #     self.fields['username'].widget.attrs.update({
-    #         'placeholder': self.transl['enter_username'],
-    #         'autofocus': True,
-    #     })
-    #     self.fields['email'].widget.attrs.update({
-    #         'placeholder': self.transl['enter_email'],
-    #     })
-    #     self.fields['first_name'].widget.attrs.update({
-    #         'placeholder': self.transl['enter_first_name'],
-    #     })
-    #     self.fields['last_name'].widget.attrs.update({
-    #         'placeholder': self.transl['enter_last_name'],
-    #     })
-    #     self.fields['password1'].widget.attrs.update({
-    #         'placeholder': self.transl['enter_password'],
-    #     })
-    #     self.fields['password2'].widget.attrs.update({
-    #         'placeholder': self.transl['enter_password_conf'],
-    #     })
-
-    #     # Update error messages for validation
-    #     self.error_messages.update({
-    #         'username_exists': self.transl['username_exists'],
-    #         'email_exists': self.transl['email_exists'],
-    #         'password_mismatch': self.transl['password_mismatch'],
-    #         'password_too_short': self.transl['password_too_short'],
-    #         'password_too_common': self.transl['password_too_common'],
-    #         'password_entirely_numeric': self.transl[
-    #             'password_entirely_numeric'
-    #         ],
-    #     })
-
-    # @update_fields({
-    #     'username': ('enter_username', 'username'),
-    #     'email': ('enter_email', 'email'),
-    #     'first_name': ('enter_first_name', 'first_name'),
-    #     'last_name': ('enter_last_name', 'last_name'),
-    #     'password1': ('enter_password', 'password'),
-    #     'password2': ('enter_password_conf', 'password_conf'),
-    # })
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
 
     def clean_username(self):
         """
