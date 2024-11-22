@@ -21,35 +21,44 @@
     </div>
     {% endif %}
 
-    <div>
-        <h1>{{ translations.login }}</h1>
-    </div>
+    <h1>{{ translations.login }}</h1>
 
     <form method="POST" action="{% url 'users:login' %}">
         {% csrf_token %}
 
-        <div class="form-field">
-            <label for="id_username_or_email">{{ translations.username_or_email }}<span
-                    class="asterisk">*</span>:</label>
-            {{ form.username_or_email }}
+        <div class="form-fields">
+            {% for field in form %}
+                <!-- <div class="form-field"> -->
+                    <div class="form-field">
+
+                    <label for="{{ field.id_for_label }}">{{ field.label|safe }}</label>
+                    {{ field }}
+
+                    {% if field.name == 'password' %}
+                        <!-- Checkbox for showing password -->
+                        <label>
+                            <input type="checkbox" class="toggle-password" data-target="{{ field.id_for_label }}">
+                            <span class="checkbox-label">{{ translations.show_password }}</span>
+                        </label>
+                    {% endif %}
+
+                    {% if field.errors %}
+                        <ul class="errorlist">
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endfor %}
         </div>
 
-        <div class="form-field">
-            <label for="id_password">{{ translations.password }}<span class="asterisk">*</span>:</label>
-            {{ form.password }}
-            <label>
-                <input type="checkbox" class="toggle-password" data-target="password">
-                <span class="checkbox-label">{{ translations.show_password }}</span>
-            </label>
-        </div>
-
-        <div class="grid">
+        <div class="grid button-group">
             <button type="submit">{{ translations.login }}</button>
-            <button type="reset">{{ translations.reset }}</button>
         </div>
 
-        <div>
-            <a href="{% url 'users:password_reset' %}" class="forgot">{{ translations.forgot_password }}</a>
+        <div class="forgot">
+            <a href="{% url 'users:password_reset' %}">{{ translations.forgot_password }}</a>
         </div>
     </form>
 
