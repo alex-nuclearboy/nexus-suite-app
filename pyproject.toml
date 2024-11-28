@@ -26,6 +26,8 @@ aiofiles = "^24.1.0"
 django-cloudinary-storage = "^0.3.0"
 cloudinary = "^1.41.0"
 pillow = "^11.0.0"
+mongoengine = "^0.29.1"
+pymongo = {extras = ["srv", "tls"], version = "^4.10.1"}
 
 
 [build-system]

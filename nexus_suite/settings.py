@@ -14,6 +14,8 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+import mongoengine
+
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
@@ -206,3 +208,11 @@ EMAIL_USE_TLS = False
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+MONGO_DB_NAME = os.getenv('MONGODB_NAME')
+MONGO_DB_HOST = os.getenv('MONGODB_URI')
+
+mongoengine.connect(
+    db=MONGO_DB_NAME,
+    host=MONGO_DB_HOST
+)
