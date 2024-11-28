@@ -9,13 +9,13 @@
 <body>
     <h1>Random Quote</h1>
     
-    {% if quote %}
-        <blockquote>
-            <p>"{{ quote.quote }}"</p>
-            <footer>- {{ quote.author }}</footer>
-        </blockquote>
+    {% if random_quote %}
+    <blockquote>
+        <p>"{{ random_quote.quote }}"</p>
+        <footer>- {{ author }}</footer>
+    </blockquote>
     {% else %}
-        <p>No quotes available.</p>
+    <p>No quotes available.</p>
     {% endif %}
 </body>
 </html>
