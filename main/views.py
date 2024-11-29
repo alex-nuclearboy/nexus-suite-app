@@ -23,14 +23,21 @@ def random_quote_view(request):
     # Get a random quote object using the utility function
     quote = get_random_quote()
 
-    # Determine the author's full name or default to "Unknown Author"
-    if quote and quote.author:
-        author_name = quote.author.fullname
+    # Check if quote exists, otherwise show a fallback message
+    if quote:
+        if quote.author:
+            author_name = quote.author.fullname
+        else:
+            author_name = "Unknown Author"
     else:
-        author_name = "Unknown Author"
+        quote = None
+        author_name = None
+
+    error_message = "Quote currently unavailable. Please try again later."
 
     # Render the template with the quote and author data
     return render(request, template_name, {
         'random_quote': quote,
-        'author': author_name
+        'author': author_name,
+        'error_message': error_message if not quote else None
     })
