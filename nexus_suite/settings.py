@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'main',
+    'quotesapp',
     'newsapp',
     'users',
 ]
